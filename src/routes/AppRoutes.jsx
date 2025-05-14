@@ -11,7 +11,6 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      {/* Protected Routes */}
       <Route
         path="/dashboard"
         element={
@@ -20,10 +19,38 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/users" element={<Users />} />
-      <Route path="//deleteUser" element={<DeleteUser />} />
-      <Route path="/nearby" element={<NearbyBusinesses />} />
-      <Route path="/categories" element={<BusinessCategories />} />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Users />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/deleteUser"
+        element={
+          <ProtectedRoute>
+            <DeleteUser />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nearby"
+        element={
+          <ProtectedRoute>
+            <NearbyBusinesses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories"
+        element={
+          <ProtectedRoute>
+            <BusinessCategories />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

@@ -10,10 +10,8 @@ const ProtectedRoute = ({ children }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userRole');
-    
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
-
   return children;
 };
 

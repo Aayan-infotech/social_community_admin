@@ -16,12 +16,12 @@ export default function Topbar() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear(); // or remove specific keys
+    localStorage.clear(); 
     toast.success('Logout successful!');
 
     setTimeout(() => {
       navigate('/');
-    }, 1600); // navigate after toast shows
+    }, 1600); 
   };
 
   return (
@@ -33,7 +33,7 @@ export default function Topbar() {
           <i className="bi bi-bell fs-5 me-3 topbar-icon"></i>
 
           <div className="topbar-avatar-container" onClick={() => setDropdownOpen(!dropdownOpen)}>
-            <img src={user.avatar} alt="avatar" className="topbar-avatar" />
+            <img src={"user.avatar"} alt="avatar" className="topbar-avatar" />
             <span className="topbar-user-name">
               {user.name}
               <i className={`bi bi-chevron-down ${dropdownOpen ? 'rotate-icon' : ''}`}></i>
