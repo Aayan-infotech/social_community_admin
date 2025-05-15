@@ -58,7 +58,7 @@ export default function Sidebar() {
             onClick={() => setOpenCategories(!openCategories)}
           >
             <span>
-              <i className="bi bi-grid-1x2-fill me-2"></i>Categories
+              <i className="bi bi-grid-1x2-fill me-2"></i>NearBy Bussiness
             </span>
             <i
               className={`bi ${
@@ -74,10 +74,38 @@ export default function Sidebar() {
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/categories/add"
-                  className="sidebar-sublink"
-                >
+                <Link to="/categories/add" className="sidebar-sublink">
+                  Add Category
+                </Link>
+              </li>
+            </ul>
+          )}
+        </li>
+
+        {/* MarketPlace Dropdown */}
+         <li className="sidebar-item">
+          <div
+            className="sidebar-link"
+            onClick={() => setOpenCategories(!openCategories)}
+          >
+            <span>
+              <i className="bi bi-grid-1x2-fill me-2"></i>MarketPlace
+            </span>
+            <i
+              className={`bi ${
+                openCategories ? "bi-chevron-up" : "bi-chevron-down"
+              }`}
+            ></i>
+          </div>
+          {openCategories && (
+            <ul className="sidebar-submenu">
+              <li>
+                <Link to="/categories" className="sidebar-sublink">
+                  All Categories
+                </Link>
+              </li>
+              <li>
+                <Link to="/categories/add" className="sidebar-sublink">
                   Add Category
                 </Link>
               </li>
