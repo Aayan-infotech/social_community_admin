@@ -6,11 +6,16 @@ import NearbyBusinesses from "../pages/CategoryManagement/NearbyBusinesses";
 import BusinessCategories from "../pages/CategoryManagement/BusinessCategories";
 import ProtectedRoute from "./ProtectedRoute";
 import DeleteUser from "../pages/UserManagement/DeleteUser";
+import NearByCategory from "../pages/NearbyBussiness/NearByCategory";
+import BusinessList from "../pages/NearbyBussiness/BusinessList";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+
+
+      {/* Protected Routes */}
       <Route
         path="/dashboard"
         element={
@@ -51,6 +56,26 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/nearby-categories"
+        element={
+          <ProtectedRoute>
+            <NearByCategory />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/all-businesses"
+        element={
+          <ProtectedRoute>
+            <BusinessList />
+          </ProtectedRoute>
+        }
+      
+      />
+
     </Routes>
   );
 }

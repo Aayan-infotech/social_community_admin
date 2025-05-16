@@ -40,7 +40,7 @@ const Users = () => {
       const token = localStorage.getItem("authToken");
 
       const response = await axios.get(
-        "http://18.209.91.97:3030/api/users/get-all-users",
+        `http://18.209.91.97:3030/api/users/get-all-users`,
         {
           params: {
             page: pagination.current_page,

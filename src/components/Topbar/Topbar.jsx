@@ -6,7 +6,10 @@ import "./Topbar.css";
 
 export default function Topbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState({ name: "", avatar: "" });
+  const [user, setUser] = useState({
+    name: "User",
+    avatar: "./placeholder/person.png",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {

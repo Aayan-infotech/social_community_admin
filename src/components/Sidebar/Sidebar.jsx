@@ -6,6 +6,8 @@ import "./Sidebar.css";
 export default function Sidebar() {
   const [openUsers, setOpenUsers] = useState(false);
   const [openCategories, setOpenCategories] = useState(false);
+  const [openMarketPlace, setOpenMarketPlace] = useState(false);
+  const [openNearby, setOpenNearby] = useState(false);
 
   return (
     <div className="custom-sidebar">
@@ -55,27 +57,27 @@ export default function Sidebar() {
         <li className="sidebar-item">
           <div
             className="sidebar-link"
-            onClick={() => setOpenCategories(!openCategories)}
+            onClick={() => setOpenNearby(!openNearby)}
           >
             <span>
-              <i className="bi bi-grid-1x2-fill me-2"></i>NearBy Bussiness
+              <i className="bi bi-grid-1x2-fill me-2"></i>NearBy Business
             </span>
             <i
               className={`bi ${
-                openCategories ? "bi-chevron-up" : "bi-chevron-down"
+                openNearby ? "bi-chevron-up" : "bi-chevron-down"
               }`}
             ></i>
           </div>
-          {openCategories && (
+          {openNearby && (
             <ul className="sidebar-submenu">
               <li>
-                <Link to="/categories" className="sidebar-sublink">
+                <Link to="/nearby-categories" className="sidebar-sublink">
                   All Categories
                 </Link>
               </li>
               <li>
-                <Link to="/categories/add" className="sidebar-sublink">
-                  Add Category
+                <Link to="/all-businesses" className="sidebar-sublink">
+                  Nearby Businesses
                 </Link>
               </li>
             </ul>
@@ -83,21 +85,21 @@ export default function Sidebar() {
         </li>
 
         {/* MarketPlace Dropdown */}
-         <li className="sidebar-item">
+        <li className="sidebar-item">
           <div
             className="sidebar-link"
-            onClick={() => setOpenCategories(!openCategories)}
+            onClick={() => setOpenMarketPlace(!openMarketPlace)}
           >
             <span>
               <i className="bi bi-grid-1x2-fill me-2"></i>MarketPlace
             </span>
             <i
               className={`bi ${
-                openCategories ? "bi-chevron-up" : "bi-chevron-down"
+                openMarketPlace ? "bi-chevron-up" : "bi-chevron-down"
               }`}
             ></i>
           </div>
-          {openCategories && (
+          {openMarketPlace && (
             <ul className="sidebar-submenu">
               <li>
                 <Link to="/categories" className="sidebar-sublink">

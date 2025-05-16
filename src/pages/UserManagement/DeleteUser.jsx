@@ -23,7 +23,7 @@ export default function DeleteUser() {
       setLoading(true);
       const token = localStorage.getItem("authToken");
       const response = await axios.get(
-        "http://18.209.91.97:3030/api/users/get-all-delete-request",
+        `http://18.209.91.97:3030/api/users/get-all-delete-request`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
