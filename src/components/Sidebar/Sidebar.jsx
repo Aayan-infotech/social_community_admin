@@ -107,8 +107,8 @@ export default function Sidebar() {
                 </Link>
               </li>
               <li>
-                <Link to="/categories/add" className="sidebar-sublink">
-                  Add Category
+                <Link to="/subcategories" className="sidebar-sublink">
+                  Sub Categories
                 </Link>
               </li>
             </ul>
