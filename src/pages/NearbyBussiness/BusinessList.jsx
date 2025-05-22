@@ -39,7 +39,7 @@ function BusinessList() {
       const token = localStorage.getItem("authToken");
 
       const response = await axios.get(
-        `http://18.209.91.97:3030/api//nearby/getAllBussinesses`,
+        `http://18.209.91.97:3030/api/nearby/getAllBussinesses`,
         {
           params: {
             page: pagination.current_page,
@@ -80,9 +80,7 @@ function BusinessList() {
         if (result.isConfirmed) {
           const token = localStorage.getItem("authToken");
           const response = await axios.put(
-            `${
-              import.meta.env.VITE_REACT_APP_API_URL
-            }/nearby/update-business-status`,
+            `http://18.209.91.97:3030/api/nearby/update-business-status`,
             { businessId: id, status: true },
             {
               headers: {
