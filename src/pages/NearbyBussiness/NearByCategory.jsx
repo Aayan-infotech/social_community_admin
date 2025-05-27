@@ -262,40 +262,49 @@ function NearByCategory() {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((category, idx) => (
-                  <tr key={category._id}>
-                    <td className="d-flex align-items-center gap-2 justify-content-start">
-                      <img
-                        src={
-                          category.category_image || "./placeholder/person.png"
-                        }
-                        alt="avatar"
-                        className="rounded-circle"
-                        width="40"
-                        height="40"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "./placeholder/person.png";
-                        }}
-                      />
-                    </td>
-                    <td>{category.category_name}</td>
-                    <td>
-                      <i
-                        className="bi bi-pencil text-warning fs-5"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleEdit(idx)}
-                        data-bs-toggle="modal"
-                        title="Edit User"
-                      ></i>
-                      <i
-                        className="bi bi-trash text-danger fs-5 m-2"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleDelete(category._id)}
-                      ></i>
+                {categories.length > 0 ? (
+                  categories.map((category, idx) => (
+                    <tr key={category._id}>
+                      <td className="d-flex align-items-center gap-2 justify-content-start">
+                        <img
+                          src={
+                            category.category_image ||
+                            "./placeholder/person.png"
+                          }
+                          alt="avatar"
+                          className="rounded-circle"
+                          width="40"
+                          height="40"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "./placeholder/person.png";
+                          }}
+                        />
+                      </td>
+                      <td>{category.category_name}</td>
+                      <td>
+                        <i
+                          className="bi bi-pencil text-warning fs-5"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleEdit(idx)}
+                          data-bs-toggle="modal"
+                          title="Edit User"
+                        ></i>
+                        <i
+                          className="bi bi-trash text-danger fs-5 m-2"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleDelete(category._id)}
+                        ></i>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="text-center">
+                      No categories found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

@@ -214,7 +214,8 @@ function BusinessList() {
                 </tr>
               </thead>
               <tbody>
-                {businesses.map((business, idx) => (
+
+                { businesses.length > 0 ? ( businesses.map((business, idx) => (
                   <tr key={business._id}>
                     <td>{business.category_name}</td>
                     <td>{business.businessName}</td>
@@ -242,7 +243,17 @@ function BusinessList() {
                       ></i>
                     </td>
                   </tr>
-                ))}
+                ))) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      {loading ? (
+                        <div className="spinner-border text-primary" role="status"></div>
+                      ) : (
+                        <span className="text-muted">No businesses found</span>
+                      )}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
