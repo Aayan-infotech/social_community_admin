@@ -61,7 +61,7 @@ const Users = () => {
             limit: pagination.per_page,
           },
         }
-      );  
+      );
 
       setUsers(response.data.data.users);
       setPagination({
@@ -89,7 +89,7 @@ const Users = () => {
       state: users[index].state,
       city: users[index].city,
       aboutMe: users[index].aboutMe || "Not provided",
-      profile_image: users[index].profile_image || './placeholder/person.png',
+      profile_image: users[index].profile_image || "./placeholder/person.png",
     });
     setModalType("view");
   };
@@ -203,6 +203,7 @@ const Users = () => {
                   <th>Email</th>
                   <th>Mobile</th>
                   <th>Gender</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -226,6 +227,13 @@ const Users = () => {
                     <td>{user.email}</td>
                     <td className="text-success">{user.mobile}</td>
                     <td>{user.gender}</td>
+                    <td>
+                      {user.isDeleted ? (
+                        <span className="badge bg-danger">Inactive</span>
+                      ) : (
+                        <span className="badge bg-success">Active</span>
+                      )}
+                    </td>
                     <td>
                       <i
                         className="bi bi-eye text-primary fs-5 me-3"
