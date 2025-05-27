@@ -208,48 +208,56 @@ const Users = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user, idx) => (
-                  <tr key={user._id}>
-                    <td className="d-flex align-items-center gap-2 justify-content-start">
-                      <img
-                        src={user.profile_image || "./placeholder/person.png"}
-                        alt="avatar"
-                        className="rounded-circle"
-                        width="40"
-                        height="40"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "./placeholder/person.png";
-                        }}
-                      />
-                      <span>{user.name}</span>
-                    </td>
-                    <td>{user.email}</td>
-                    <td className="text-success">{user.mobile}</td>
-                    <td>{user.gender}</td>
-                    <td>
-                      {user.isDeleted ? (
-                        <span className="badge bg-danger">Inactive</span>
-                      ) : (
-                        <span className="badge bg-success">Active</span>
-                      )}
-                    </td>
-                    <td>
-                      <i
-                        className="bi bi-eye text-primary fs-5 me-3"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleView(idx)}
-                        title="View User"
-                      ></i>
-                      <i
-                        className="bi bi-pencil text-warning fs-5"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleEdit(idx)}
-                        title="Edit User"
-                      ></i>
+                {users.length > 0 ? (
+                  users.map((user, idx) => (
+                    <tr key={user._id}>
+                      <td className="d-flex align-items-center gap-2 justify-content-start">
+                        <img
+                          src={user.profile_image || "./placeholder/person.png"}
+                          alt="avatar"
+                          className="rounded-circle"
+                          width="40"
+                          height="40"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "./placeholder/person.png";
+                          }}
+                        />
+                        <span>{user.name}</span>
+                      </td>
+                      <td>{user.email}</td>
+                      <td className="text-success">{user.mobile}</td>
+                      <td>{user.gender}</td>
+                      <td>
+                        {user.isDeleted ? (
+                          <span className="badge bg-danger">Inactive</span>
+                        ) : (
+                          <span className="badge bg-success">Active</span>
+                        )}
+                      </td>
+                      <td>
+                        <i
+                          className="bi bi-eye text-primary fs-5 me-3"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleView(idx)}
+                          title="View User"
+                        ></i>
+                        <i
+                          className="bi bi-pencil text-warning fs-5"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleEdit(idx)}
+                          title="Edit User"
+                        ></i>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      No users found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
