@@ -6,10 +6,9 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
-import { fetchWithAuth } from "../../api/authFetch";
 
 export default function Page() {
-  const [categories, setCategories] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     category_name: "",
@@ -66,7 +65,7 @@ export default function Page() {
           category_name: "",
           category_image: "",
         });
-        fetchCategories();
+        fetchfaqs();
       } else {
         toast.error(response.data.message || "Failed to add category");
       }
@@ -108,7 +107,7 @@ export default function Page() {
                 text: "Category has been deleted.",
                 icon: "success",
               });
-              fetchCategories();
+              fetchfaqs();
             } else {
               Swal.fire({
                 title: "Error!",
@@ -152,7 +151,7 @@ export default function Page() {
           category_name: "",
           category_image: "",
         });
-        fetchCategories();
+        fetchfaqs();
       } else {
         toast.error(response.data.message || "Failed to update category");
       }
@@ -165,38 +164,37 @@ export default function Page() {
   const handleEdit = (index) => {
     setModalType("edit");
     setFormData({
-      id: categories[index]._id,
-      category_name: categories[index].category_name,
-      category_image: categories[index].category_image,
+      id: faqs[index]._id,
+      category_name: faqs[index].category_name,
+      category_image: faqs[index].category_image,
     });
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchfaqs();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchfaqs = async () => {
     try {
       setLoading(true);
-      
-
-      const response = await fetchWithAuth(
-        `http://18.209.91.97:3030/api/marketplace/get-category`,
+      const token = localStorage.getItem("authToken");
+      console.log("Token:", token);
+      const response = await axios.get(
+        `http://18.209.91.97:3030/api/users/FAQ`,
         {
-          method: "GET",
           headers: {
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       if (response.data.success) {
-        setCategories(response.data.data || []);
+        setFaqs(response.data.data || []);
       } else {
-        toast.error(response.data.message || "Failed to fetch categories");
+        toast.error(response.data.message || "Failed to fetch faqs");
       }
     } catch (error) {
-      toast.error("Failed to fetch categories");
+      toast.error("Failed to fetch faqs");
       setError(error.message || "An error occurred");
     } finally {
       setLoading(false);
@@ -237,13 +235,13 @@ export default function Page() {
         <Topbar />
         <div className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-bold text-dark">MarketPlace Categories</h3>
+            <h3 className="fw-bold text-dark">FAQ</h3>
             <Button
-              title="Add Category"
+              title="Add FAQ"
               onClick={handleAddCategory}
               variant="primary"
             >
-              Add Category
+              Add FAQ
             </Button>
           </div>
 
@@ -251,13 +249,13 @@ export default function Page() {
             <table className="table table-bordered align-middle text-center table-striped">
               <thead className="table-dark">
                 <tr>
-                  <th>Category Icon</th>
-                  <th>Category Name</th>
+                  <th>Question</th>
+                  <th>Answer</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {categories.map((category, idx) => (
+                {/* {faqs.map((category, idx) => (
                   <tr key={category._id}>
                     <td className="d-flex align-items-center gap-2 justify-content-start">
                       <img
@@ -287,6 +285,27 @@ export default function Page() {
                         className="bi bi-trash text-danger fs-5 m-2"
                         style={{ cursor: "pointer" }}
                         onClick={() => handleDelete(category._id)}
+                      ></i>
+                    </td>
+                  </tr>
+                ))} */}
+
+                {faqs.map((faq, idx) => (
+                  <tr key={faq._id}>
+                    <td>{faq.question}</td>
+                    <td>{faq.answer}</td>
+                    <td>
+                      <i
+                        className="bi bi-pencil text-warning fs-5"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleEdit(idx)}
+                        data-bs-toggle="modal"
+                        title="Edit User"
+                      ></i>
+                      <i
+                        className="bi bi-trash text-danger fs-5 m-2"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleDelete(faq._id)}
                       ></i>
                     </td>
                   </tr>

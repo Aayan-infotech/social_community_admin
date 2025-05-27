@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
+import { fetchWithAuth } from "../../api/authFetch";
 
 function NearByCategory() {
   const [categories, setCategories] = useState([]);
@@ -178,12 +179,18 @@ function NearByCategory() {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
-      const response = await axios.get(
+      // const response = await axios.get(
+      //   `http://18.209.91.97:3030/api/nearby/get-business-category`,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
+      const response = await fetchWithAuth(
         `http://18.209.91.97:3030/api/nearby/get-business-category`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          method: "GET",
         }
       );
 

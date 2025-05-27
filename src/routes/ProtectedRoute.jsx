@@ -5,6 +5,8 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('authToken');
   const role = localStorage.getItem('userRole');
 
+
+
   if (!token || role !== 'admin') {
     // Clear any existing auth data
     localStorage.removeItem('authToken');

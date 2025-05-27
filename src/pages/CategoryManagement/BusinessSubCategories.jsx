@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
+import { fetchWithAuth } from "../../api/authFetch";
 
 export default function SubcategoryPage() {
   const [categories, setCategories] = useState([]);
@@ -21,15 +22,17 @@ export default function SubcategoryPage() {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await axios.get(
+      setLoading(true);
+      const response = await fetchWithAuth(
         `http://18.209.91.97:3030/api/marketplace/get-category`,
         {
+          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
+
       if (response.data.success) {
         setCategories(response.data.data || []);
       } else {
@@ -43,11 +46,13 @@ export default function SubcategoryPage() {
   const fetchSubcategories = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
-      const response = await axios.get(
+      const response = await fetchWithAuth(
         `http://18.209.91.97:3030/api/marketplace/get-subcategories`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 

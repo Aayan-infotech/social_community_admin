@@ -5,6 +5,7 @@ import "./Users.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { fetchWithAuth } from "../../api/authFetch";
 
 export default function DeleteUser() {
   const [deleteRequests, setDeleteRequests] = useState([]);
@@ -21,12 +22,13 @@ export default function DeleteUser() {
   const fetchDeleteRequests = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
-      const response = await axios.get(
-        `http://18.209.91.97:3030/api/users/get-all-delete-request`,
+
+      const response = await fetchWithAuth(
+        "http://18.209.91.97:3030/api/users/get-all-delete-request",
         {
+          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );

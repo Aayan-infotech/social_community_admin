@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
-import { fetchWithAuth } from "../../api/authFetch";
 
 export default function Page() {
   const [categories, setCategories] = useState([]);
@@ -178,14 +177,12 @@ export default function Page() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      
-
-      const response = await fetchWithAuth(
+      const token = localStorage.getItem("authToken");
+      const response = await axios.get(
         `http://18.209.91.97:3030/api/marketplace/get-category`,
         {
-          method: "GET",
           headers: {
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -237,13 +234,13 @@ export default function Page() {
         <Topbar />
         <div className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-bold text-dark">MarketPlace Categories</h3>
+            <h3 className="fw-bold text-dark">Info Pages</h3>
             <Button
-              title="Add Category"
+              title="Add Info Page"
               onClick={handleAddCategory}
               variant="primary"
             >
-              Add Category
+              Add Info Page
             </Button>
           </div>
 
@@ -251,8 +248,8 @@ export default function Page() {
             <table className="table table-bordered align-middle text-center table-striped">
               <thead className="table-dark">
                 <tr>
-                  <th>Category Icon</th>
-                  <th>Category Name</th>
+                  <th>Page Name</th>
+                  <th>Page URL</th>
                   <th>Actions</th>
                 </tr>
               </thead>

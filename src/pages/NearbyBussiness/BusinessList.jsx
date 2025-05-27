@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { fetchWithAuth } from "../../api/authFetch"; // Assuming you have a utility for authenticated fetch
 
 function BusinessList() {
   const [businesses, setBusinesses] = useState([]);
@@ -38,18 +39,28 @@ function BusinessList() {
       setLoading(true);
       const token = localStorage.getItem("authToken");
 
-      const response = await axios.get(
+      // const response = await axios.get(
+      //   `http://18.209.91.97:3030/api/nearby/getAllBussinesses`,
+      //   {
+      //     params: {
+      //       page: pagination.current_page,
+      //       limit: pagination.per_page,
+      //     },
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
+      const response = await fetchWithAuth(
         `http://18.209.91.97:3030/api/nearby/getAllBussinesses`,
         {
+          method: "GET",
           params: {
             page: pagination.current_page,
             limit: pagination.per_page,
           },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
-      );
+      );  
 
       setBusinesses(response.data.data.businesses);
       setPagination({

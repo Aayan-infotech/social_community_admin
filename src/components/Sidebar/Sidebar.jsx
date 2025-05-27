@@ -8,6 +8,7 @@ export default function Sidebar() {
   const [openCategories, setOpenCategories] = useState(false);
   const [openMarketPlace, setOpenMarketPlace] = useState(false);
   const [openNearby, setOpenNearby] = useState(false);
+  const [openInfoPages, setOpenInfoPages] = useState(false);
 
   return (
     <div className="custom-sidebar">
@@ -57,18 +58,18 @@ export default function Sidebar() {
         <li className="sidebar-item">
           <div
             className="sidebar-link"
-            onClick={() => setOpenNearby(!openNearby)}
+            onClick={() => setOpenCategories(!openCategories)}
           >
             <span>
               <i className="bi bi-grid-1x2-fill me-2"></i>NearBy Business
             </span>
             <i
               className={`bi ${
-                openNearby ? "bi-chevron-up" : "bi-chevron-down"
+                openCategories ? "bi-chevron-up" : "bi-chevron-down"
               }`}
             ></i>
           </div>
-          {openNearby && (
+          {openCategories && (
             <ul className="sidebar-submenu">
               <li>
                 <Link to="/nearby-categories" className="sidebar-sublink">
@@ -109,6 +110,42 @@ export default function Sidebar() {
               <li>
                 <Link to="/subcategories" className="sidebar-sublink">
                   Sub Categories
+                </Link>
+              </li>
+            </ul>
+          )}
+        </li>
+
+        {/* Info Pages Dropdown */}
+        <li className="sidebar-item">
+          <div
+            className="sidebar-link"
+            onClick={() => setOpenInfoPages(!openInfoPages)}
+          >
+            <span>
+              <i className="bi bi-file-earmark-text me-2"></i>Info Pages
+            </span>
+            <i
+              className={`bi ${
+                openInfoPages ? "bi-chevron-up" : "bi-chevron-down"
+              }`}
+            ></i>
+          </div>
+          {openInfoPages && (
+            <ul className="sidebar-submenu">
+              <li>
+                <Link to="/pages" className="sidebar-sublink">
+                  All Pages
+                </Link>
+              </li>
+              <li>
+                <Link to="/faqs" className="sidebar-sublink">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="sidebar-sublink">
+                  Contact Us
                 </Link>
               </li>
             </ul>

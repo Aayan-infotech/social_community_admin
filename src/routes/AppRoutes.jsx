@@ -8,6 +8,10 @@ import ProtectedRoute from "./ProtectedRoute";
 import DeleteUser from "../pages/UserManagement/DeleteUser";
 import NearByCategory from "../pages/NearbyBussiness/NearByCategory";
 import BusinessList from "../pages/NearbyBussiness/BusinessList";
+import InfoPages from "../pages/InfoPages/InfoPages";
+import FrontendInfoPages from "../pages/InfoPages/FrontendInfoPages";
+import FAQ from "../pages/InfoPages/FAQ";
+import ContactUs from "../pages/InfoPages/ContactUs";
 
 
 export default function AppRoutes() {
@@ -15,6 +19,13 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Login />} />
 
+      {/* Create a Dynamic Route for Info Pages */}
+      <Route 
+        path="/info_pages/:pageURL"
+        element={
+          <FrontendInfoPages />
+        }
+      />
 
       {/* Protected Routes */}
       <Route
@@ -74,8 +85,18 @@ export default function AppRoutes() {
             <BusinessList />
           </ProtectedRoute>
         }
-      
       />
+
+      <Route
+       path="/pages"
+       element={
+        <ProtectedRoute>
+          <InfoPages />
+        </ProtectedRoute>
+       }
+      />
+      <Route path="faqs" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
+      <Route path="contact" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
 
     </Routes>
   );

@@ -5,6 +5,7 @@ import "./Users.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { fetchWithAuth } from "../../api/authFetch";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -39,18 +40,28 @@ const Users = () => {
       setLoading(true);
       const token = localStorage.getItem("authToken");
 
-      const response = await axios.get(
+      // const response = await axios.get(
+      //   `http://18.209.91.97:3030/api/users/get-all-users`,
+      //   {
+      //     params: {
+      //       page: pagination.current_page,
+      //       limit: pagination.per_page,
+      //     },
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
+      const response = await fetchWithAuth(
         `http://18.209.91.97:3030/api/users/get-all-users`,
         {
+          method: "GET",
           params: {
             page: pagination.current_page,
             limit: pagination.per_page,
           },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
-      );
+      );  
 
       setUsers(response.data.data.users);
       setPagination({
