@@ -47,9 +47,7 @@ function NearByCategory() {
 
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `${
-          import.meta.env.VITE_REACT_APP_API_URL
-        }nearby/upsert-bussiness-category`,
+        `http://18.209.91.97:3030/api/nearby/upsert-bussiness-category`,
         formData,
         {
           headers: {
@@ -133,9 +131,7 @@ function NearByCategory() {
       const token = localStorage.getItem("authToken");
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `${
-          import.meta.env.VITE_REACT_APP_API_URL
-        }nearby/upsert-bussiness-category`,
+        `http://18.209.91.97:3030/api/nearby/upsert-bussiness-category`,
         formData,
         {
           headers: {

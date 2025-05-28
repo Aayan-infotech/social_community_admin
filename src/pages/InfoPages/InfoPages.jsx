@@ -46,9 +46,7 @@ export default function Page() {
 
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `${
-          import.meta.env.VITE_REACT_APP_API_URL
-        }marketplace/upsert-category`,
+        `http://18.209.91.97:3030/api/marketplace/upsert-category`,
         formData,
         {
           headers: {
@@ -132,9 +130,7 @@ export default function Page() {
       const token = localStorage.getItem("authToken");
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `${
-          import.meta.env.VITE_REACT_APP_API_URL
-        }marketplace/upsert-category`,
+        `http://18.209.91.97:3030/api/marketplace/upsert-category`,
         formData,
         {
           headers: {
