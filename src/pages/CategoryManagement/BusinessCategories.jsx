@@ -90,9 +90,9 @@ export default function Page() {
         const token = localStorage.getItem("authToken");
         axios
           .delete(
-            `${
-              import.meta.env.VITE_REACT_APP_API_URL
-            }marketplace/delete-marketplace-category/${id}`,
+            `
+              http://18.209.91.97:3030/api/
+            marketplace/delete-marketplace-category/${id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

@@ -90,9 +90,7 @@ function NearByCategory() {
         const token = localStorage.getItem("authToken");
         axios
           .delete(
-            `${
-              import.meta.env.VITE_REACT_APP_API_URL
-            }nearby/delete-bussiness-category/${id}`,
+            `http://18.209.91.97:3030/api/nearby/delete-bussiness-category/${id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
