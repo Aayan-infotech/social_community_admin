@@ -80,3 +80,12 @@
   transform: rotate(180deg);
   transition: transform 0.2s ease-in-out;
 }
+@media (max-width: 768px) {
+  .topbar-search{
+    display: none;
+  }
+  .custom-topbar
+{
+  justify-content: end;
+}
+}
