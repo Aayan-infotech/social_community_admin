@@ -4,6 +4,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Topbar.css";
 
+
+
 export default function Topbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState({
@@ -11,7 +13,7 @@ export default function Topbar() {
     avatar: "./placeholder/person.png",
   });
   const navigate = useNavigate();
-  
+
 
   useEffect(() => {
     const name = localStorage.getItem("userName") || "User";
