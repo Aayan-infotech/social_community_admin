@@ -9,6 +9,7 @@ export default function Sidebar() {
   const [openCategories, setOpenCategories] = useState(false);
   const [openMarketPlace, setOpenMarketPlace] = useState(false);
   const [openInfoPages, setOpenInfoPages] = useState(false);
+  const [openEventManagement, setOpenEventManagement] = useState(false);
 
   return (
     <>
@@ -84,6 +85,26 @@ export default function Sidebar() {
                 </li>
                 <li>
                   <Link to="/subcategories" className="sidebar-sublink">Sub Categories</Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Event Management */}
+          <li className="sidebar-item">
+            <div className="sidebar-link" onClick={() => setOpenEventManagement(!openEventManagement)}>
+              <span>
+                <i className="bi bi-calendar-event me-2"></i>Event Management
+              </span>
+              <i className={`bi ${openEventManagement ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
+            </div>
+            {openEventManagement && (
+              <ul className="sidebar-submenu">
+                <li>
+                  <Link to="/events" className="sidebar-sublink">All Events</Link>
+                </li>
+                <li>
+                  <Link to="/create-event" className="sidebar-sublink">Create Event</Link>
                 </li>
               </ul>
             )}

@@ -8,28 +8,31 @@ import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
 
 export default function Page() {
-  const [categories, setCategories] = useState([]);
+  const [pages, setPages] = useState([]);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    category_name: "",
-    category_image: "",
+    pageName: "",
+    pageUrl: "",
+    pageDescription: "",
   });
   const [modalType, setModalType] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const handleAddCategory = () => {
+  const handleAddPage = () => {
     setModalType("add");
     setFormData({
-      category_name: "",
-      category_image: "",
+      pageName: "",
+      pageUrl: "",
+      pageDescription: "",
     });
   };
 
   const handleCloseModal = () => {
     setModalType(null);
     setFormData({
-      category_name: "",
-      category_image: "",
+      pageName: "",
+      pageUrl: "",
+      pageDescription: "",
     });
   };
   const handleChange = (e) => {

@@ -12,22 +12,14 @@ import InfoPages from "../pages/InfoPages/InfoPages";
 import FrontendInfoPages from "../pages/InfoPages/FrontendInfoPages";
 import FAQ from "../pages/InfoPages/FAQ";
 import ContactUs from "../pages/InfoPages/ContactUs";
-
+import Events from "../pages/Events/Events";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/info_pages/:pageURL" element={<FrontendInfoPages />} />
 
-      {/* Create a Dynamic Route for Info Pages */}
-      <Route 
-        path="/info_pages/:pageURL"
-        element={
-          <FrontendInfoPages />
-        }
-      />
-
-      {/* Protected Routes */}
       <Route
         path="/dashboard"
         element={
@@ -88,16 +80,38 @@ export default function AppRoutes() {
       />
 
       <Route
-       path="/pages"
-       element={
-        <ProtectedRoute>
-          <InfoPages />
-        </ProtectedRoute>
-       }
+        path="/pages"
+        element={
+          <ProtectedRoute>
+            <InfoPages />
+          </ProtectedRoute>
+        }
       />
-      <Route path="faqs" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
-      <Route path="contact" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+      <Route
+        path="faqs"
+        element={
+          <ProtectedRoute>
+            <FAQ />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="contact"
+        element={
+          <ProtectedRoute>
+            <ContactUs />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/events"
+        element={
+          <ProtectedRoute>
+            <Events />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
