@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
-import { fetchWithAuth } from "../../api/authFetch";
 
 export default function Page() {
   const [categories, setCategories] = useState([]);
@@ -47,7 +46,7 @@ export default function Page() {
 
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `http://18.209.91.97:3030/api/marketplace/upsert-category`,
+        `marketplace/upsert-category`,
         formData,
         {
           headers: {
@@ -91,7 +90,7 @@ export default function Page() {
         axios
           .delete(
             `
-              http://18.209.91.97:3030/api/
+              
             marketplace/delete-marketplace-category/${id}`,
             {
               headers: {
@@ -131,7 +130,7 @@ export default function Page() {
       const token = localStorage.getItem("authToken");
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `http://18.209.91.97:3030/api/marketplace/upsert-category`,
+        `marketplace/upsert-category`,
         formData,
         {
           headers: {
@@ -175,16 +174,7 @@ export default function Page() {
     try {
       setLoading(true);
       
-
-      const response = await fetchWithAuth(
-        `http://18.209.91.97:3030/api/marketplace/get-category`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.get(`marketplace/get-category`);
 
       if (response.data.success) {
         setCategories(response.data.data || []);
@@ -412,8 +402,6 @@ export default function Page() {
               </div>
             </div>
           )}
-
-          <ToastContainer />
         </div>
       </div>
     </div>

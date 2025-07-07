@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import Swal from "sweetalert2";
-import { fetchWithAuth } from "../../api/authFetch"; // Assuming you have a utility for authenticated fetch
+import Swal from "sweetalert2"; // Assuming you have a utility for authenticated fetch
 
 function BusinessList() {
   const [businesses, setBusinesses] = useState([]);
@@ -38,29 +37,12 @@ function BusinessList() {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
-
-      // const response = await axios.get(
-      //   `http://18.209.91.97:3030/api/nearby/getAllBussinesses`,
-      //   {
-      //     params: {
-      //       page: pagination.current_page,
-      //       limit: pagination.per_page,
-      //     },
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
-      const response = await fetchWithAuth(
-        `http://18.209.91.97:3030/api/nearby/getAllBussinesses`,
-        {
-          method: "GET",
-          params: {
-            page: pagination.current_page,
-            limit: pagination.per_page,
-          },
-        }
-      );  
+      const response = await axios.get(`nearby/getAllBussinesses`, {
+        params: {
+          page: pagination.current_page,
+          limit: pagination.per_page,
+        },
+      });
 
       setBusinesses(response.data.data.businesses);
       setPagination({
@@ -91,7 +73,7 @@ function BusinessList() {
         if (result.isConfirmed) {
           const token = localStorage.getItem("authToken");
           const response = await axios.put(
-            `http://18.209.91.97:3030/api/nearby/update-business-status`,
+            `nearby/update-business-status`,
             { businessId: id, status: true },
             {
               headers: {
@@ -145,7 +127,7 @@ function BusinessList() {
         if (result.isConfirmed) {
           const token = localStorage.getItem("authToken");
           const response = await axios.put(
-            `http://18.209.91.97:3030/api/nearby/update-business-status`,
+            `nearby/update-business-status`,
             { businessId: id, status: false },
             {
               headers: {
@@ -214,40 +196,44 @@ function BusinessList() {
                 </tr>
               </thead>
               <tbody>
-
-                { businesses.length > 0 ? ( businesses.map((business, idx) => (
-                  <tr key={business._id}>
-                    <td>{business.category_name}</td>
-                    <td>{business.businessName}</td>
-                    <td>{business.address}</td>
-                    <td>{business.userName}</td>
-                    <td>
-                      {business.status === true ? (
-                        <span className="badge bg-success">Active</span>
-                      ) : (
-                        <span className="badge bg-danger">Inactive</span>
-                      )}
-                    </td>
-                    <td>
-                      <i
-                        className="bi bi-check-circle text-success fs-5"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleApprove(business._id)}
-                        title="Approve"
-                      ></i>
-                      <i
-                        className="bi bi-x-circle text-danger fs-5 m-2"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleReject(business._id)}
-                        title="Reject"
-                      ></i>
-                    </td>
-                  </tr>
-                ))) : (
+                {businesses.length > 0 ? (
+                  businesses.map((business, idx) => (
+                    <tr key={business._id}>
+                      <td>{business.category_name}</td>
+                      <td>{business.businessName}</td>
+                      <td>{business.address}</td>
+                      <td>{business.userName}</td>
+                      <td>
+                        {business.status === true ? (
+                          <span className="badge bg-success">Active</span>
+                        ) : (
+                          <span className="badge bg-danger">Inactive</span>
+                        )}
+                      </td>
+                      <td>
+                        <i
+                          className="bi bi-check-circle text-success fs-5"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleApprove(business._id)}
+                          title="Approve"
+                        ></i>
+                        <i
+                          className="bi bi-x-circle text-danger fs-5 m-2"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleReject(business._id)}
+                          title="Reject"
+                        ></i>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
                   <tr>
                     <td colSpan="6" className="text-center">
                       {loading ? (
-                        <div className="spinner-border text-primary" role="status"></div>
+                        <div
+                          className="spinner-border text-primary"
+                          role="status"
+                        ></div>
                       ) : (
                         <span className="text-muted">No businesses found</span>
                       )}
@@ -314,8 +300,6 @@ function BusinessList() {
               </ul>
             </nav>
           )}
-
-          <ToastContainer />
         </div>
       </div>
     </div>

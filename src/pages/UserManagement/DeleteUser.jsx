@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
 import "./Users.css";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import { fetchWithAuth } from "../../api/authFetch";
 
 export default function DeleteUser() {
   const [deleteRequests, setDeleteRequests] = useState([]);
@@ -22,16 +21,7 @@ export default function DeleteUser() {
   const fetchDeleteRequests = async () => {
     try {
       setLoading(true);
-
-      const response = await fetchWithAuth(
-        "http://18.209.91.97:3030/api/users/get-all-delete-request",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response= await axios.get(`users/get-all-delete-request`);
 
       if (response.data.success) {
         const requests = response.data.data?.deleteRequests || [];
@@ -62,7 +52,7 @@ export default function DeleteUser() {
     const token = localStorage.getItem("authToken");
 
     const response = await axios.put(
-      "http://18.209.91.97:3030/api/users/update-delete-request",
+      "users/update-delete-request",
       {
         requestId: selectedRequest._id,
         status: actionType, // "approved" or "rejected"
@@ -251,7 +241,6 @@ export default function DeleteUser() {
             </div>
           )}
 
-          <ToastContainer />
         </div>
       </div>
     </div>

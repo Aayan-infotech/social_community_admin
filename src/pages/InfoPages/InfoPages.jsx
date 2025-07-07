@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
@@ -49,7 +49,7 @@ export default function Page() {
 
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `http://18.209.91.97:3030/api/marketplace/upsert-category`,
+        `marketplace/upsert-category`,
         formData,
         {
           headers: {
@@ -92,7 +92,7 @@ export default function Page() {
         const token = localStorage.getItem("authToken");
         axios
           .delete(
-            `http://18.209.91.97:3030/api/marketplace/delete-marketplace-category/${id}`,
+            `marketplace/delete-marketplace-category/${id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -131,7 +131,7 @@ export default function Page() {
       const token = localStorage.getItem("authToken");
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `http://18.209.91.97:3030/api/marketplace/upsert-category`,
+        `marketplace/upsert-category`,
         formData,
         {
           headers: {
@@ -176,7 +176,7 @@ export default function Page() {
       setLoading(true);
       const token = localStorage.getItem("authToken");
       const response = await axios.get(
-        `http://18.209.91.97:3030/api/marketplace/get-category`,
+        `marketplace/get-category`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -410,8 +410,6 @@ export default function Page() {
               </div>
             </div>
           )}
-
-          <ToastContainer />
         </div>
       </div>
     </div>

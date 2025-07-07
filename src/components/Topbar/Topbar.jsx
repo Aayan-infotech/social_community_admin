@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Topbar.css";
-
-
+import { useDispatch } from "react-redux";
+import { logout } from "../../store/actions/user";
 
 export default function Topbar() {
+  const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState({
     name: "User",
     avatar: "./placeholder/person.png",
   });
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const name = localStorage.getItem("userName") || "User";
@@ -22,8 +22,8 @@ export default function Topbar() {
     setUser({ name, avatar });
   }, []);
 
-  const handleLogout = () => {
-    localStorage.clear();
+   const handleLogout = () => {
+    dispatch(logout());
     toast.success("Logout successful!");
 
     setTimeout(() => {
@@ -63,8 +63,6 @@ export default function Topbar() {
           </div>
         </div>
       </div>
-
-      <ToastContainer />
     </>
   );
 }

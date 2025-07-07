@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
-import { fetchWithAuth } from "../../api/authFetch";
 
 function NearByCategory() {
   const [categories, setCategories] = useState([]);
@@ -47,7 +46,7 @@ function NearByCategory() {
 
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `http://18.209.91.97:3030/api/nearby/upsert-bussiness-category`,
+        `nearby/upsert-bussiness-category`,
         formData,
         {
           headers: {
@@ -89,14 +88,11 @@ function NearByCategory() {
       if (result.isConfirmed) {
         const token = localStorage.getItem("authToken");
         axios
-          .delete(
-            `http://18.209.91.97:3030/api/nearby/delete-bussiness-category/${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          )
+          .delete(`nearby/delete-bussiness-category/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
           .then((response) => {
             if (response.data.success) {
               Swal.fire({
@@ -129,7 +125,7 @@ function NearByCategory() {
       const token = localStorage.getItem("authToken");
       console.log("Form Data:", formData);
       const response = await axios.post(
-        `http://18.209.91.97:3030/api/nearby/upsert-bussiness-category`,
+        `nearby/upsert-bussiness-category`,
         formData,
         {
           headers: {
@@ -173,20 +169,7 @@ function NearByCategory() {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
-      // const response = await axios.get(
-      //   `http://18.209.91.97:3030/api/nearby/get-business-category`,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
-      const response = await fetchWithAuth(
-        `http://18.209.91.97:3030/api/nearby/get-business-category`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await axios.get(`nearby/get-business-category`);
 
       if (response.data.success) {
         setCategories(response.data.data || []);
@@ -424,8 +407,6 @@ function NearByCategory() {
               </div>
             </div>
           )}
-
-          <ToastContainer />
         </div>
       </div>
     </div>

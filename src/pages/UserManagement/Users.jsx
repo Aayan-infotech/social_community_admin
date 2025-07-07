@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
 import "./Users.css";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import { fetchWithAuth } from "../../api/authFetch";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -38,10 +37,9 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
 
       // const response = await axios.get(
-      //   `http://18.209.91.97:3030/api/users/get-all-users`,
+      //   `users/get-all-users`,
       //   {
       //     params: {
       //       page: pagination.current_page,
@@ -52,15 +50,8 @@ const Users = () => {
       //     },
       //   }
       // );
-      const response = await fetchWithAuth(
-        `http://18.209.91.97:3030/api/users/get-all-users`,
-        {
-          method: "GET",
-          params: {
-            page: pagination.current_page,
-            limit: pagination.per_page,
-          },
-        }
+      const response = await axios.get(
+        `users/get-all-users?page=${pagination.current_page}&limit=${pagination.per_page}`
       );
 
       setUsers(response.data.data.users);
@@ -135,7 +126,7 @@ const Users = () => {
     try {
       const userId = users[selectedUserIndex].userId;
       await axios.put(
-        `http://18.209.91.97:3030/api/users/update-user/${userId}`,
+        `users/update-user/${userId}`,
         formData
       );
 
@@ -190,7 +181,7 @@ const Users = () => {
 
 
 
-  
+
 
   return (
     <div className="d-flex">
@@ -519,7 +510,6 @@ const Users = () => {
             </div>
           )}
 
-          <ToastContainer />
         </div>
       </div>
     </div>
