@@ -85,7 +85,6 @@ export default function SubcategoryPage() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
 
       const payload = new FormData();
       payload.append("subcategory_name", formData.subcategory_name);
@@ -99,7 +98,6 @@ export default function SubcategoryPage() {
         payload,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -122,7 +120,6 @@ export default function SubcategoryPage() {
 
   const handleUpdate = async () => {
     try {
-      const token = localStorage.getItem("authToken");
 
       const payload = new FormData();
       payload.append("id", formData.id);
@@ -137,7 +134,6 @@ export default function SubcategoryPage() {
         payload,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -167,14 +163,8 @@ export default function SubcategoryPage() {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        const token = localStorage.getItem("authToken");
         axios
-          .delete(
-            `marketplace/delete-subcategory/${id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          )
+          .delete(`marketplace/delete-subcategory/${id}`)
           .then((response) => {
             if (response.data.success) {
               Swal.fire("Deleted!", "Subcategory deleted.", "success");

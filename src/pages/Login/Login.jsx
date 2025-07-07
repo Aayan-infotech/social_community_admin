@@ -6,6 +6,7 @@ import "./Login.css";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { userActions } from "../../store/reducers/userReducers";
+import { logout } from "../../store/actions/user";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -36,8 +37,6 @@ const LoginPage = () => {
       });
 
       const result = response.data;
-
-      console.log("Login response:", result);
 
       if (result.statusCode === 200) {
         // Save user data to localStorage
@@ -74,27 +73,17 @@ const LoginPage = () => {
           !user.role.includes("event_manager") &&
           !user.role.includes("vendor")
         ) {
-          localStorage.removeItem("userInfo");
+          dispatch(logout());
           toast.error("You are not authorized to access this system");
         }
-
-        // // Check user role and redirect accordingly
-        // if (user.role === "admin") {
-        //   toast.success("Admin login successful!");
-        //   setTimeout(() => {
-        //     navigate("/dashboard");
-        //   }, 1500);
-        // } else {
-        //   // Clear sensitive data if not admin
-        //   localStorage.removeItem("authToken");
-        //   localStorage.removeItem("refreshToken");
-        //   toast.error("You are not authorized to access this system");
-        // }
       } else {
         toast.error(result.message || "Invalid credentials");
       }
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      const errorMessage =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.";
+      toast.error(errorMessage);
       console.error(error);
     } finally {
       setLoading(false);
@@ -102,10 +91,7 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    console.log("User state updated:", userState.userInfo);
     if (userState.userInfo) {
-      console.log("User info:", userState.userInfo);
-      console.log("User role:", userState.userInfo.role);
       if (userState.userInfo.role.includes("admin")) {
         setTimeout(() => {
           navigate("/dashboard");
@@ -122,8 +108,7 @@ const LoginPage = () => {
         !userState.userInfo.role.includes("event_manager") &&
         !userState.userInfo.role.includes("vendor")
       ) {
-        localStorage.removeItem("userInfo");
-        toast.error("You are not authorized to access this system");
+        dispatch(logout());
       }
     }
   }, [navigate, userState.userInfo]);

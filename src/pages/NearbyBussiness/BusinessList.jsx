@@ -36,7 +36,6 @@ function BusinessList() {
   const fetchBusinesses = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
       const response = await axios.get(`nearby/getAllBussinesses`, {
         params: {
           page: pagination.current_page,
@@ -71,15 +70,9 @@ function BusinessList() {
         confirmButtonText: "Yes, approve it!",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const token = localStorage.getItem("authToken");
           const response = await axios.put(
             `nearby/update-business-status`,
             { businessId: id, status: true },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
           );
 
           if (response.data.success) {
@@ -125,15 +118,9 @@ function BusinessList() {
         confirmButtonText: "Yes, reject it!",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const token = localStorage.getItem("authToken");
           const response = await axios.put(
             `nearby/update-business-status`,
             { businessId: id, status: false },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
           );
 
           if (response.data.success) {

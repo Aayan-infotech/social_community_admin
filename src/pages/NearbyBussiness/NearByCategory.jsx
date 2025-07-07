@@ -42,15 +42,12 @@ function NearByCategory() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
 
-      console.log("Form Data:", formData);
       const response = await axios.post(
         `nearby/upsert-bussiness-category`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -86,13 +83,8 @@ function NearByCategory() {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        const token = localStorage.getItem("authToken");
         axios
-          .delete(`nearby/delete-bussiness-category/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
+          .delete(`nearby/delete-bussiness-category/${id}`)
           .then((response) => {
             if (response.data.success) {
               Swal.fire({
@@ -122,14 +114,12 @@ function NearByCategory() {
 
   const handleUpdate = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      console.log("Form Data:", formData);
+      
       const response = await axios.post(
         `nearby/upsert-bussiness-category`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -168,7 +158,6 @@ function NearByCategory() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
       const response = await axios.get(`nearby/get-business-category`);
 
       if (response.data.success) {

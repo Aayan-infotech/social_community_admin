@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
 import "./Users.css";
-import {  toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
@@ -21,7 +21,7 @@ export default function DeleteUser() {
   const fetchDeleteRequests = async () => {
     try {
       setLoading(true);
-      const response= await axios.get(`users/get-all-delete-request`);
+      const response = await axios.get(`users/get-all-delete-request`);
 
       if (response.data.success) {
         const requests = response.data.data?.deleteRequests || [];
@@ -47,42 +47,41 @@ export default function DeleteUser() {
   };
 
   const processRequest = async () => {
-  try {
-    setProcessing(true);
-    const token = localStorage.getItem("authToken");
+    try {
+      setProcessing(true);
 
-    const response = await axios.put(
-      "users/update-delete-request",
-      {
-        requestId: selectedRequest._id,
-        status: actionType, // "approved" or "rejected"
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await axios.put(
+        "users/update-delete-request",
+        {
+          requestId: selectedRequest._id,
+          status: actionType, // "approved" or "rejected"
         },
-      }
-    );
-
-    if (response.data.success) {
-      toast.success(response.data.message || "Request processed successfully");
-
-      // Remove request from list after success
-      setDeleteRequests((prev) =>
-        prev.filter((req) => req._id !== selectedRequest._id)
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
-    } else {
-      toast.error(response.data.message || "Action failed");
-    }
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to process request");
-  } finally {
-    setProcessing(false);
-    setShowConfirmation(false);
-  }
-};
 
+      if (response.data.success) {
+        toast.success(
+          response.data.message || "Request processed successfully"
+        );
+
+        // Remove request from list after success
+        setDeleteRequests((prev) =>
+          prev.filter((req) => req._id !== selectedRequest._id)
+        );
+      } else {
+        toast.error(response.data.message || "Action failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to process request");
+    } finally {
+      setProcessing(false);
+      setShowConfirmation(false);
+    }
+  };
 
   return (
     <div className="d-flex">
@@ -113,7 +112,10 @@ export default function DeleteUser() {
                       <td className="text-start">
                         <div className="d-flex align-items-center gap-2">
                           <img
-                            src={request.profile_image || "https://i.pravatar.cc/40"}
+                            src={
+                              request.profile_image ||
+                              "https://i.pravatar.cc/40"
+                            }
                             alt="avatar"
                             className="rounded-circle"
                             width="40"
@@ -125,7 +127,9 @@ export default function DeleteUser() {
                           />
                           <div>
                             <div className="fw-bold">{request.name}</div>
-                            <div className="text-muted small">{request.email}</div>
+                            <div className="text-muted small">
+                              {request.email}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -133,7 +137,8 @@ export default function DeleteUser() {
                         <strong>Reason:</strong>
                         <div>{request.reason || "No reason provided"}</div>
                         <div className="text-muted small mt-2">
-                          Requested: {new Date(request.createdAt).toLocaleString()}
+                          Requested:{" "}
+                          {new Date(request.createdAt).toLocaleString()}
                         </div>
                       </td>
                       <td>
@@ -150,18 +155,22 @@ export default function DeleteUser() {
                         </span>
                       </td>
                       <td>
-                        {(!request.status || request.status === "pending") ? (
+                        {!request.status || request.status === "pending" ? (
                           <>
                             <button
                               className="btn btn-success btn-sm me-2"
-                              onClick={() => handleActionClick(request, "approved")}
+                              onClick={() =>
+                                handleActionClick(request, "approved")
+                              }
                               disabled={processing}
                             >
                               Approve
                             </button>
                             <button
                               className="btn btn-danger btn-sm"
-                              onClick={() => handleActionClick(request, "rejected")}
+                              onClick={() =>
+                                handleActionClick(request, "rejected")
+                              }
                               disabled={processing}
                             >
                               Reject
@@ -177,17 +186,23 @@ export default function DeleteUser() {
               </table>
             </div>
           ) : (
-            <div className="alert alert-info">No delete account requests found</div>
+            <div className="alert alert-info">
+              No delete account requests found
+            </div>
           )}
 
           {/* Confirmation Modal */}
           {showConfirmation && (
-            <div className="modal show fade d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+            <div
+              className="modal show fade d-block"
+              style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
               <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content">
                   <div className="modal-header">
                     <h5 className="modal-title">
-                      Confirm {actionType === "approved" ? "Approval" : "Rejection"}
+                      Confirm{" "}
+                      {actionType === "approved" ? "Approval" : "Rejection"}
                     </h5>
                     <button
                       type="button"
@@ -198,7 +213,8 @@ export default function DeleteUser() {
                   </div>
                   <div className="modal-body">
                     <p>
-                      Are you sure you want to <strong>{actionType}</strong> the delete request for{" "}
+                      Are you sure you want to <strong>{actionType}</strong> the
+                      delete request for{" "}
                       <strong>{selectedRequest?.name}</strong>?
                     </p>
                     {actionType === "approved" && (
@@ -208,7 +224,9 @@ export default function DeleteUser() {
                     )}
                     <div className="mt-3">
                       <strong>Reason:</strong>
-                      <p className="border p-2 rounded mt-1">{selectedRequest?.reason || "No reason provided"}</p>
+                      <p className="border p-2 rounded mt-1">
+                        {selectedRequest?.reason || "No reason provided"}
+                      </p>
                     </div>
                   </div>
                   <div className="modal-footer">
@@ -222,7 +240,9 @@ export default function DeleteUser() {
                     </button>
                     <button
                       type="button"
-                      className={`btn ${actionType === "approved" ? "btn-danger" : "btn-warning"}`}
+                      className={`btn ${
+                        actionType === "approved" ? "btn-danger" : "btn-warning"
+                      }`}
                       onClick={processRequest}
                       disabled={processing}
                     >
@@ -240,7 +260,6 @@ export default function DeleteUser() {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

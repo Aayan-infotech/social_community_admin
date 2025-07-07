@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
 import "./Users.css";
-import {  toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -37,19 +38,6 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-
-      // const response = await axios.get(
-      //   `users/get-all-users`,
-      //   {
-      //     params: {
-      //       page: pagination.current_page,
-      //       limit: pagination.per_page,
-      //     },
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
       const response = await axios.get(
         `users/get-all-users?page=${pagination.current_page}&limit=${pagination.per_page}`
       );
@@ -125,10 +113,7 @@ const Users = () => {
   const handleSave = async () => {
     try {
       const userId = users[selectedUserIndex].userId;
-      await axios.put(
-        `users/update-user/${userId}`,
-        formData
-      );
+      await axios.put(`users/update-user/${userId}`, formData);
 
       const updatedUsers = [...users];
       updatedUsers[selectedUserIndex] = {
@@ -177,11 +162,6 @@ const Users = () => {
       </div>
     );
   }
-
-
-
-
-
 
   return (
     <div className="d-flex">
@@ -462,13 +442,13 @@ const Users = () => {
                             </div>
                             <div className="mb-3">
                               <label className="form-label">
-                                Profile Image URL
+                                Profile Image{" "}
+                                <Link to={formData.profile_image} target="_blank">View</Link>
                               </label>
                               <input
-                                type="text"
+                                type="file"
                                 name="profile_image"
                                 className="form-control"
-                                value={formData.profile_image}
                                 onChange={handleChange}
                               />
                             </div>
@@ -509,7 +489,6 @@ const Users = () => {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

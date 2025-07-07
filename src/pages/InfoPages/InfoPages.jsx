@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
-import {  toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
@@ -45,15 +45,12 @@ export default function Page() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
 
-      console.log("Form Data:", formData);
       const response = await axios.post(
         `marketplace/upsert-category`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -89,16 +86,8 @@ export default function Page() {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        const token = localStorage.getItem("authToken");
         axios
-          .delete(
-            `marketplace/delete-marketplace-category/${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          )
+          .delete(`marketplace/delete-marketplace-category/${id}`)
           .then((response) => {
             if (response.data.success) {
               Swal.fire({
@@ -128,14 +117,11 @@ export default function Page() {
 
   const handleUpdate = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      console.log("Form Data:", formData);
       const response = await axios.post(
         `marketplace/upsert-category`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -174,15 +160,7 @@ export default function Page() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
-      const response = await axios.get(
-        `marketplace/get-category`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`marketplace/get-category`);
 
       if (response.data.success) {
         setCategories(response.data.data || []);

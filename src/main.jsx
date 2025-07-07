@@ -46,12 +46,9 @@ axios.interceptors.response.use(
         const response = await axios.post("auth/refresh-token", {
           refreshToken,
         });
-        console.log("Token refresh response:", response.data);
 
         const { accessToken, refreshToken: newRefreshToken } =
           response.data?.data;
-        console.log("New access token:", accessToken);
-        console.log("New refresh token:", newRefreshToken);
 
         const updatedAccount = {
           ...userInfo,

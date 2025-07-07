@@ -42,15 +42,12 @@ export default function Page() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
 
-      console.log("Form Data:", formData);
       const response = await axios.post(
         `marketplace/upsert-category`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -86,18 +83,8 @@ export default function Page() {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        const token = localStorage.getItem("authToken");
         axios
-          .delete(
-            `
-              
-            marketplace/delete-marketplace-category/${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          )
+          .delete(`marketplace/delete-marketplace-category/${id}`)
           .then((response) => {
             if (response.data.success) {
               Swal.fire({
@@ -127,14 +114,12 @@ export default function Page() {
 
   const handleUpdate = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      console.log("Form Data:", formData);
+
       const response = await axios.post(
         `marketplace/upsert-category`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
