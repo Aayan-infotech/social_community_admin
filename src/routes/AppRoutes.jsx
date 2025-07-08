@@ -13,105 +13,71 @@ import FrontendInfoPages from "../pages/InfoPages/FrontendInfoPages";
 import FAQ from "../pages/InfoPages/FAQ";
 import ContactUs from "../pages/InfoPages/ContactUs";
 import Events from "../pages/Events/Events";
+import AdminLayout from "../components/AdminLayout";
+import { useSelector } from "react-redux";
+import NotFound from "../components/NotFound";
+import Event from "../pages/user/Events/Event";
 
 export default function AppRoutes() {
+  const userState = useSelector((state) => state.user);
+  const userInfo = userState.userInfo;
   return (
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/info_pages/:pageURL" element={<FrontendInfoPages />} />
 
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/users"
-        element={
-          <ProtectedRoute>
-            <Users />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/deleteUser"
-        element={
-          <ProtectedRoute>
-            <DeleteUser />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/categories"
-        element={
-          <ProtectedRoute>
-            <BusinessCategories />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/subcategories"
-        element={
-          <ProtectedRoute>
-            <BusinessSubCategories />
-          </ProtectedRoute>
-        }
-      />
+      {userInfo?.role?.includes("admin") && (
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="deleteUser" element={<DeleteUser />} />
+          <Route path="categories" element={<BusinessCategories />} />
+          <Route path="subcategories" element={<BusinessSubCategories />} />
+          <Route path="nearby-categories" element={<NearByCategory />} />
+          <Route path="all-businesses" element={<BusinessList />} />
+          <Route path="pages" element={<InfoPages />} />
+          <Route path="faqs" element={<FAQ />} />
+          <Route path="contact" element={<ContactUs />} />
+          <Route path="events" element={<Events />} />
+        </Route>
+      )}
 
-      <Route
-        path="/nearby-categories"
-        element={
-          <ProtectedRoute>
-            <NearByCategory />
-          </ProtectedRoute>
-        }
-      />
+      {userInfo?.role?.includes("vendor") && (
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="events" element={<Event />} />
+        </Route>
+      )}
 
-      <Route
-        path="/all-businesses"
-        element={
-          <ProtectedRoute>
-            <BusinessList />
-          </ProtectedRoute>
-        }
-      />
+      {userInfo?.role?.includes("event_manager") && (
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="events" element={<Event />} />
+        </Route>
+      )}
 
-      <Route
-        path="/pages"
-        element={
-          <ProtectedRoute>
-            <InfoPages />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="faqs"
-        element={
-          <ProtectedRoute>
-            <FAQ />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="contact"
-        element={
-          <ProtectedRoute>
-            <ContactUs />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/events"
-        element={
-          <ProtectedRoute>
-            <Events />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

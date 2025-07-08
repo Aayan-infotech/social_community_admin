@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Topbar from "../../components/Topbar/Topbar";
-import {toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Swal from "sweetalert2";
+import images from "../../contstants/images";
 
 export default function SubcategoryPage() {
   const [categories, setCategories] = useState([]);
@@ -120,7 +121,6 @@ export default function SubcategoryPage() {
 
   const handleUpdate = async () => {
     try {
-
       const payload = new FormData();
       payload.append("id", formData.id);
       payload.append("subcategory_name", formData.subcategory_name);
@@ -198,159 +198,153 @@ export default function SubcategoryPage() {
 
   if (loading) {
     return (
-      <div className="d-flex">
-        <Sidebar />
-        <div className="flex-grow-1 bg-light">
-          <Topbar />
-          <div className="p-4 text-center">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
+      <div className="p-4 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="d-flex">
-      <Sidebar />
-      <div className="flex-grow-1 bg-light">
-        <Topbar />
-        <div className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-bold text-dark">Marketplace Subcategories</h3>
-            <Button onClick={handleAddSubcategory} variant="primary">
-              Add Subcategory
-            </Button>
-          </div>
+    <div className="p-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h3 className="fw-bold text-dark">Marketplace Subcategories</h3>
+        <Button onClick={handleAddSubcategory} variant="primary">
+          Add Subcategory
+        </Button>
+      </div>
 
-          <div className="table-responsive">
-            <table className="table table-bordered align-middle text-center table-striped">
-              <thead className="table-dark">
-                <tr>
-                  <th>Icon</th>
-                  <th>Subcategory Name</th>
-                  <th>Category</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subcategories.map((sub, idx) => (
-                  <tr key={sub._id}>
-                    <td>
-                      <img
-                        src={sub.subcategory_image || "./placeholder/person.png"}
-                        alt="icon"
-                        width="40"
-                        height="40"
-                        className="rounded-circle"
-                      />
-                    </td>
-                    <td>{sub.subcategory_name}</td>
-                    <td>{getCategoryName(sub.category_id)}</td>
-                    <td>
-                      <i
-                        className="bi bi-pencil text-warning fs-5"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleEdit(idx)}
-                      ></i>
-                      <i
-                        className="bi bi-trash text-danger fs-5 m-2"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleDelete(sub._id)}
-                      ></i>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <div className="table-responsive">
+        <table className="table table-bordered align-middle text-center table-striped">
+          <thead className="table-dark">
+            <tr>
+              <th>Icon</th>
+              <th>Subcategory Name</th>
+              <th>Category</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subcategories.map((sub, idx) => (
+              <tr key={sub._id}>
+                <td>
+                  <img
+                    src={sub.subcategory_image || images.placeholder}
+                    alt="icon"
+                    width="40"
+                    height="40"
+                    className="rounded-circle"
+                  />
+                </td>
+                <td>{sub.subcategory_name}</td>
+                <td>{getCategoryName(sub.category_id)}</td>
+                <td>
+                  <i
+                    className="bi bi-pencil text-warning fs-5"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleEdit(idx)}
+                  ></i>
+                  <i
+                    className="bi bi-trash text-danger fs-5 m-2"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleDelete(sub._id)}
+                  ></i>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          {modalType && (
-            <div
-              className="modal show fade d-block"
-              tabIndex="-1"
-              role="dialog"
-              style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-            >
-              <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h5 className="modal-title">
-                      {modalType === "add" ? "Add Subcategory" : "Edit Subcategory"}
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      onClick={handleCloseModal}
-                    ></button>
+      {modalType && (
+        <div
+          className="modal show fade d-block"
+          tabIndex="-1"
+          role="dialog"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered modal-lg"
+            role="document"
+          >
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {modalType === "add" ? "Add Subcategory" : "Edit Subcategory"}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleCloseModal}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <form encType="multipart/form-data">
+                  <div className="mb-3">
+                    <label className="form-label">Subcategory Name</label>
+                    <input
+                      type="text"
+                      name="subcategory_name"
+                      className="form-control"
+                      value={formData.subcategory_name}
+                      onChange={handleChange}
+                    />
                   </div>
-                  <div className="modal-body">
-                    <form encType="multipart/form-data">
-                      <div className="mb-3">
-                        <label className="form-label">Subcategory Name</label>
-                        <input
-                          type="text"
-                          name="subcategory_name"
-                          className="form-control"
-                          value={formData.subcategory_name}
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Parent Category</label>
-                        <select
-                          name="category_id"
-                          className="form-select"
-                          value={formData.category_id}
-                          onChange={handleChange}
-                        >
-                          <option value="">Select category</option>
-                          {categories.map((cat) => (
-                            <option key={cat._id} value={cat._id}>
-                              {cat.category_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Subcategory Image</label>
-                        <input
-                          type="file"
-                          name="subcategory_image"
-                          className="form-control"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              setFormData((prev) => ({
-                                ...prev,
-                                subcategory_image: file,
-                              }));
-                            }
-                          }}
-                        />
-                      </div>
-                    </form>
-                  </div>
-                  <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={handleCloseModal}>
-                      Close
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={modalType === "add" ? handleSave : handleUpdate}
+                  <div className="mb-3">
+                    <label className="form-label">Parent Category</label>
+                    <select
+                      name="category_id"
+                      className="form-select"
+                      value={formData.category_id}
+                      onChange={handleChange}
                     >
-                      {modalType === "add" ? "Save" : "Update"}
-                    </button>
+                      <option value="">Select category</option>
+                      {categories.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                          {cat.category_name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
+                  <div className="mb-3">
+                    <label className="form-label">Subcategory Image</label>
+                    <input
+                      type="file"
+                      name="subcategory_image"
+                      className="form-control"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            subcategory_image: file,
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
+                </form>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleCloseModal}
+                >
+                  Close
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={modalType === "add" ? handleSave : handleUpdate}
+                >
+                  {modalType === "add" ? "Save" : "Update"}
+                </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

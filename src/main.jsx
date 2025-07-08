@@ -8,7 +8,7 @@ import links from "./contstants/links.js";
 import { Provider } from "react-redux";
 import axios from "axios";
 import { userActions } from "./store/reducers/userReducers";
-
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 // Set base URL
 axios.defaults.baseURL = links.BASE_URL;
@@ -75,11 +75,21 @@ axios.interceptors.response.use(
   }
 );
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 // Render App
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
     </Provider>
   </StrictMode>
 );

@@ -84,184 +84,166 @@ export default function DeleteUser() {
   };
 
   return (
-    <div className="d-flex">
-      <Sidebar />
-      <div className="flex-grow-1 bg-light">
-        <Topbar />
-        <div className="p-4">
-          <h3 className="mb-4 fw-bold text-dark">🗑️ Delete Account Requests</h3>
+    <div className="p-4">
+      <h3 className="mb-4 fw-bold text-dark">🗑️ Delete Account Requests</h3>
 
-          {loading ? (
-            <div className="text-center">
-              <div className="spinner-border text-primary" role="status"></div>
-            </div>
-          ) : deleteRequests.length > 0 ? (
-            <div className="table-responsive">
-              <table className="table table-bordered align-middle text-center table-striped">
-                <thead className="table-dark">
-                  <tr>
-                    <th>User Info</th>
-                    <th>Request Details</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deleteRequests.map((request) => (
-                    <tr key={request._id}>
-                      <td className="text-start">
-                        <div className="d-flex align-items-center gap-2">
-                          <img
-                            src={
-                              request.profile_image ||
-                              "https://i.pravatar.cc/40"
-                            }
-                            alt="avatar"
-                            className="rounded-circle"
-                            width="40"
-                            height="40"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "https://i.pravatar.cc/40";
-                            }}
-                          />
-                          <div>
-                            <div className="fw-bold">{request.name}</div>
-                            <div className="text-muted small">
-                              {request.email}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="text-start">
-                        <strong>Reason:</strong>
-                        <div>{request.reason || "No reason provided"}</div>
-                        <div className="text-muted small mt-2">
-                          Requested:{" "}
-                          {new Date(request.createdAt).toLocaleString()}
-                        </div>
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            request.status === "approved"
-                              ? "bg-success"
-                              : request.status === "rejected"
-                              ? "bg-danger"
-                              : "bg-warning text-dark"
-                          }`}
-                        >
-                          {request.status || "pending"}
-                        </span>
-                      </td>
-                      <td>
-                        {!request.status || request.status === "pending" ? (
-                          <>
-                            <button
-                              className="btn btn-success btn-sm me-2"
-                              onClick={() =>
-                                handleActionClick(request, "approved")
-                              }
-                              disabled={processing}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() =>
-                                handleActionClick(request, "rejected")
-                              }
-                              disabled={processing}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        ) : (
-                          <span className="text-muted">Action taken</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="alert alert-info">
-              No delete account requests found
-            </div>
-          )}
-
-          {/* Confirmation Modal */}
-          {showConfirmation && (
-            <div
-              className="modal show fade d-block"
-              style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-            >
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h5 className="modal-title">
-                      Confirm{" "}
-                      {actionType === "approved" ? "Approval" : "Rejection"}
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      onClick={() => setShowConfirmation(false)}
-                      disabled={processing}
-                    ></button>
-                  </div>
-                  <div className="modal-body">
-                    <p>
-                      Are you sure you want to <strong>{actionType}</strong> the
-                      delete request for{" "}
-                      <strong>{selectedRequest?.name}</strong>?
-                    </p>
-                    {actionType === "approved" && (
-                      <div className="alert alert-danger">
-                        This will permanently delete the user's account!
+      {loading ? (
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status"></div>
+        </div>
+      ) : deleteRequests.length > 0 ? (
+        <div className="table-responsive">
+          <table className="table table-bordered align-middle text-center table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>User Info</th>
+                <th>Request Details</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deleteRequests.map((request) => (
+                <tr key={request._id}>
+                  <td className="text-start">
+                    <div className="d-flex align-items-center gap-2">
+                      <img
+                        src={
+                          request.profile_image || "https://i.pravatar.cc/40"
+                        }
+                        alt="avatar"
+                        className="rounded-circle"
+                        width="40"
+                        height="40"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://i.pravatar.cc/40";
+                        }}
+                      />
+                      <div>
+                        <div className="fw-bold">{request.name}</div>
+                        <div className="text-muted small">{request.email}</div>
                       </div>
-                    )}
-                    <div className="mt-3">
-                      <strong>Reason:</strong>
-                      <p className="border p-2 rounded mt-1">
-                        {selectedRequest?.reason || "No reason provided"}
-                      </p>
                     </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowConfirmation(false)}
-                      disabled={processing}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn ${
-                        actionType === "approved" ? "btn-danger" : "btn-warning"
+                  </td>
+                  <td className="text-start">
+                    <strong>Reason:</strong>
+                    <div>{request.reason || "No reason provided"}</div>
+                    <div className="text-muted small mt-2">
+                      Requested: {new Date(request.createdAt).toLocaleString()}
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        request.status === "approved"
+                          ? "bg-success"
+                          : request.status === "rejected"
+                          ? "bg-danger"
+                          : "bg-warning text-dark"
                       }`}
-                      onClick={processRequest}
-                      disabled={processing}
                     >
-                      {processing ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2"></span>
-                          Processing...
-                        </>
-                      ) : (
-                        `Confirm ${actionType}`
-                      )}
-                    </button>
+                      {request.status || "pending"}
+                    </span>
+                  </td>
+                  <td>
+                    {!request.status || request.status === "pending" ? (
+                      <>
+                        <button
+                          className="btn btn-success btn-sm me-2"
+                          onClick={() => handleActionClick(request, "approved")}
+                          disabled={processing}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleActionClick(request, "rejected")}
+                          disabled={processing}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-muted">Action taken</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="alert alert-info">No delete account requests found</div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmation && (
+        <div
+          className="modal show fade d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Confirm {actionType === "approved" ? "Approval" : "Rejection"}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowConfirmation(false)}
+                  disabled={processing}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to <strong>{actionType}</strong> the
+                  delete request for <strong>{selectedRequest?.name}</strong>?
+                </p>
+                {actionType === "approved" && (
+                  <div className="alert alert-danger">
+                    This will permanently delete the user's account!
                   </div>
+                )}
+                <div className="mt-3">
+                  <strong>Reason:</strong>
+                  <p className="border p-2 rounded mt-1">
+                    {selectedRequest?.reason || "No reason provided"}
+                  </p>
                 </div>
               </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowConfirmation(false)}
+                  disabled={processing}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${
+                    actionType === "approved" ? "btn-danger" : "btn-warning"
+                  }`}
+                  onClick={processRequest}
+                  disabled={processing}
+                >
+                  {processing ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Processing...
+                    </>
+                  ) : (
+                    `Confirm ${actionType}`
+                  )}
+                </button>
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

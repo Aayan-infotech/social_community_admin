@@ -70,10 +70,10 @@ function BusinessList() {
         confirmButtonText: "Yes, approve it!",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await axios.put(
-            `nearby/update-business-status`,
-            { businessId: id, status: true },
-          );
+          const response = await axios.put(`nearby/update-business-status`, {
+            businessId: id,
+            status: true,
+          });
 
           if (response.data.success) {
             Swal.fire({
@@ -118,10 +118,10 @@ function BusinessList() {
         confirmButtonText: "Yes, reject it!",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await axios.put(
-            `nearby/update-business-status`,
-            { businessId: id, status: false },
-          );
+          const response = await axios.put(`nearby/update-business-status`, {
+            businessId: id,
+            status: false,
+          });
 
           if (response.data.success) {
             Swal.fire({
@@ -161,134 +161,123 @@ function BusinessList() {
   };
 
   return (
-    <div className="d-flex">
-      <Sidebar />
-      <div className="flex-grow-1 bg-light">
-        <Topbar />
-        <div className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-bold text-dark">NearBy Bussiness</h3>
-          </div>
-
-          <div className="table-responsive">
-            <table className="table table-bordered align-middle text-center table-striped">
-              <thead className="table-dark">
-                <tr>
-                  <th>Bussiness Category</th>
-                  <th>Bussiness Name</th>
-                  <th>Address</th>
-                  <th>Listed By</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {businesses.length > 0 ? (
-                  businesses.map((business, idx) => (
-                    <tr key={business._id}>
-                      <td>{business.category_name}</td>
-                      <td>{business.businessName}</td>
-                      <td>{business.address}</td>
-                      <td>{business.userName}</td>
-                      <td>
-                        {business.status === true ? (
-                          <span className="badge bg-success">Active</span>
-                        ) : (
-                          <span className="badge bg-danger">Inactive</span>
-                        )}
-                      </td>
-                      <td>
-                        <i
-                          className="bi bi-check-circle text-success fs-5"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => handleApprove(business._id)}
-                          title="Approve"
-                        ></i>
-                        <i
-                          className="bi bi-x-circle text-danger fs-5 m-2"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => handleReject(business._id)}
-                          title="Reject"
-                        ></i>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="text-center">
-                      {loading ? (
-                        <div
-                          className="spinner-border text-primary"
-                          role="status"
-                        ></div>
-                      ) : (
-                        <span className="text-muted">No businesses found</span>
-                      )}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {pagination.total_page > 1 && (
-            <nav aria-label="Page navigation">
-              <ul className="pagination justify-content-center">
-                <li
-                  className={`page-item ${
-                    pagination.current_page === 1 ? "disabled" : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() =>
-                      handlePageChange(pagination.current_page - 1)
-                    }
-                  >
-                    Previous
-                  </button>
-                </li>
-
-                {Array.from(
-                  { length: pagination.total_page },
-                  (_, i) => i + 1
-                ).map((page) => (
-                  <li
-                    key={page}
-                    className={`page-item ${
-                      page === pagination.current_page ? "active" : ""
-                    }`}
-                  >
-                    <button
-                      className="page-link"
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  </li>
-                ))}
-
-                <li
-                  className={`page-item ${
-                    pagination.current_page === pagination.total_page
-                      ? "disabled"
-                      : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() =>
-                      handlePageChange(pagination.current_page + 1)
-                    }
-                  >
-                    Next
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          )}
-        </div>
+    <div className="p-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h3 className="fw-bold text-dark">NearBy Bussiness</h3>
       </div>
+
+      <div className="table-responsive">
+        <table className="table table-bordered align-middle text-center table-striped">
+          <thead className="table-dark">
+            <tr>
+              <th>Bussiness Category</th>
+              <th>Bussiness Name</th>
+              <th>Address</th>
+              <th>Listed By</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {businesses.length > 0 ? (
+              businesses.map((business, idx) => (
+                <tr key={business._id}>
+                  <td>{business.category_name}</td>
+                  <td>{business.businessName}</td>
+                  <td>{business.address}</td>
+                  <td>{business.userName}</td>
+                  <td>
+                    {business.status === true ? (
+                      <span className="badge bg-success">Active</span>
+                    ) : (
+                      <span className="badge bg-danger">Inactive</span>
+                    )}
+                  </td>
+                  <td>
+                    <i
+                      className="bi bi-check-circle text-success fs-5"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleApprove(business._id)}
+                      title="Approve"
+                    ></i>
+                    <i
+                      className="bi bi-x-circle text-danger fs-5 m-2"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleReject(business._id)}
+                      title="Reject"
+                    ></i>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="text-center">
+                  {loading ? (
+                    <div
+                      className="spinner-border text-primary"
+                      role="status"
+                    ></div>
+                  ) : (
+                    <span className="text-muted">No businesses found</span>
+                  )}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {pagination.total_page > 1 && (
+        <nav aria-label="Page navigation">
+          <ul className="pagination justify-content-center">
+            <li
+              className={`page-item ${
+                pagination.current_page === 1 ? "disabled" : ""
+              }`}
+            >
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(pagination.current_page - 1)}
+              >
+                Previous
+              </button>
+            </li>
+
+            {Array.from({ length: pagination.total_page }, (_, i) => i + 1).map(
+              (page) => (
+                <li
+                  key={page}
+                  className={`page-item ${
+                    page === pagination.current_page ? "active" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                </li>
+              )
+            )}
+
+            <li
+              className={`page-item ${
+                pagination.current_page === pagination.total_page
+                  ? "disabled"
+                  : ""
+              }`}
+            >
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(pagination.current_page + 1)}
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }

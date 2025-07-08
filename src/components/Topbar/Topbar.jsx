@@ -1,34 +1,33 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Topbar.css";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/actions/user";
+import images from "../../contstants/images";
 
 export default function Topbar() {
   const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const userState = useSelector((state) => state.user);
   const [user, setUser] = useState({
     name: "User",
-    avatar: "./placeholder/person.png",
+    avatar: images.placeholder,
   });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const name = localStorage.getItem("userName") || "User";
-    const avatar =
-      localStorage.getItem("profileImage") || "./placeholder/person.png";
+    const name = userState.userInfo.name || "User";
+    const avatar = userState.userInfo.profileImage || images.placeholder;
     setUser({ name, avatar });
   }, []);
 
-   const handleLogout = () => {
+  const handleLogout = () => {
     dispatch(logout());
     toast.success("Logout successful!");
 
-    setTimeout(() => {
-      navigate("/");
-    }, 1600);
+    navigate("/");
   };
 
   return (

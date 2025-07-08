@@ -58,7 +58,7 @@ const LoginPage = () => {
         if (user.role.includes("admin")) {
           toast.success("Admin login successful!");
           setTimeout(() => {
-            navigate("/dashboard");
+            navigate("/admin/dashboard");
           }, 1500);
         } else if (
           user.role.includes("event_manager") ||
@@ -66,7 +66,7 @@ const LoginPage = () => {
         ) {
           toast.success(" login successful!");
           setTimeout(() => {
-            navigate("/dashboard");
+            navigate("/user/dashboard");
           }, 1500);
         } else if (
           !user.role.includes("admin") &&
@@ -94,14 +94,14 @@ const LoginPage = () => {
     if (userState.userInfo) {
       if (userState.userInfo.role.includes("admin")) {
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/admin/dashboard");
         }, 1500);
       } else if (
         userState.userInfo.role.includes("event_manager") ||
         userState.userInfo.role.includes("vendor")
       ) {
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/user/dashboard");
         }, 1500);
       } else if (
         !userState.userInfo.role.includes("admin") &&
