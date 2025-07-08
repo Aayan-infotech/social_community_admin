@@ -79,6 +79,14 @@
   border-radius: 5px;
 }
 
+.sidebar-link.active,
+.sidebar-link-dash.active,
+.sidebar-sublink.active {
+  background-color: #ffffff;
+  color: #1f2937;
+  font-weight: bold;
+}
+
 /* Responsive behavior */
 @media (max-width: 768px) {
   .custom-sidebar {

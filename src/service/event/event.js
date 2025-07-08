@@ -1,9 +1,9 @@
 import axios from "axios";
 
-export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "") => {
+export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "" , type="all") => {
     try {
         const { data } = await axios.get(
-            `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}`,
+            `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}&type=${type}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,

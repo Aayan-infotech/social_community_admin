@@ -74,6 +74,8 @@ export default function AppRoutes() {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="events" element={<Event />} />
+          <Route path="upcoming-events" element={<Event type="upcoming" />} />
+          <Route path="past-events" element={<Event type="past" />} />
         </Route>
       )}
 

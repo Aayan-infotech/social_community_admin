@@ -10,7 +10,8 @@ import {
 } from "../../../service/event/event";
 import { toast } from "react-toastify";
 
-function Event() {
+function Event({ type }) {
+  console.log("Event Type:", type);
   const [userSelectedEvent, setUserSelectedEvent] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [formData, setFormData] = useState({
@@ -143,9 +144,10 @@ function Event() {
         userState?.userInfo?.accessToken,
         currentPage,
         10,
-        searchKeyword
+        searchKeyword,
+        type
       ),
-    dataQueryKey: "events",
+    dataQueryKey: ["events", type],
     deleteDataMessage: "Event is deleted",
     mutateDeleteFn: ({ slug, token }) => {
       return deleteEvent({
@@ -220,11 +222,18 @@ function Event() {
                 </p>
               </td>
               <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                {new Date(event?.eventEndDate) < new Date() ? (
-                  <span className="badge text-bg-danger">Ended</span>
-                ) : (
-                  <span className="badge text-bg-success">Ongoing</span>
-                )}
+                {(() => {
+                  const eventEndDateTime = new Date(
+                    `${event?.eventEndDate?.split("T")[0]}T${
+                      event?.eventTimeEnd
+                    }:00.000Z`
+                  );
+                  return new Date() > eventEndDateTime ? (
+                    <span className="badge text-bg-danger">Ended</span>
+                  ) : (
+                    <span className="badge text-bg-success">Ongoing</span>
+                  );
+                })()}
               </td>
               <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
                 <i
