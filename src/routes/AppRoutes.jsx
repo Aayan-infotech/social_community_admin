@@ -17,6 +17,8 @@ import AdminLayout from "../components/AdminLayout";
 import { useSelector } from "react-redux";
 import NotFound from "../components/NotFound";
 import Event from "../pages/user/Events/Event";
+import BookedTickets from "../pages/user/Events/BookedTickets";
+import CancelledTickets from "../pages/user/Events/CancelledTickets";
 
 export default function AppRoutes() {
   const userState = useSelector((state) => state.user);
@@ -74,8 +76,10 @@ export default function AppRoutes() {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="events" element={<Event />} />
-          <Route path="upcoming-events" element={<Event type="upcoming" />} />
+          <Route path="upcoming-events" element={<Event type="upcoming" />} /> 
           <Route path="past-events" element={<Event type="past" />} />
+          <Route path="booked-tickets" element={<BookedTickets />} />
+          <Route path="cancelled-tickets" element={<CancelledTickets />} />
         </Route>
       )}
 

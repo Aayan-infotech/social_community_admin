@@ -18,7 +18,7 @@ const DataTable = ({
 }) => {
   return (
     <div className="container mt-4">
-      <h1 className="h3 fw-semibold mb-4">{pageTitle}</h1>
+      <h1 className="h4 fw-semibold mb-4">{pageTitle}</h1>
 
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <h2 className="h4">{dataListName}</h2>
@@ -73,7 +73,6 @@ const DataTable = ({
         </table>
       </div>
 
-      {console.log("totalPageCount:", totalPageCount)}
       {!isLoading && (
         <Pagination
           onPageChange={(page) => setCurrentPage(page)}

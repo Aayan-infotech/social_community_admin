@@ -11,7 +11,6 @@ import {
 import { toast } from "react-toastify";
 
 function Event({ type }) {
-  console.log("Event Type:", type);
   const [userSelectedEvent, setUserSelectedEvent] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [formData, setFormData] = useState({
@@ -159,9 +158,8 @@ function Event({ type }) {
 
   return (
     <>
-      {console.log("Events Data:", eventsData)}
       <DataTable
-        pageTitle="Manage Events"
+        pageTitle={type ? type + " Events" : "My Events"}
         dataListName="Events"
         searchInputPlaceHolder="Event's name..."
         searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
@@ -207,8 +205,10 @@ function Event({ type }) {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
                   })}
-                  - {formatTime(event?.eventTimeStart)}
                 </p>
               </td>
               <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
@@ -217,22 +217,21 @@ function Event({ type }) {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
-                  })}{" "}
-                  - {formatTime(event?.eventTimeEnd)}
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
                 </p>
               </td>
               <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
                 {(() => {
-                  const eventEndDateTime = new Date(
-                    `${event?.eventEndDate?.split("T")[0]}T${
-                      event?.eventTimeEnd
-                    }:00.000Z`
-                  );
-                  return new Date() > eventEndDateTime ? (
-                    <span className="badge text-bg-danger">Ended</span>
-                  ) : (
-                    <span className="badge text-bg-success">Ongoing</span>
-                  );
+                  const currentDate = new Date();
+                  const eventEndDate = new Date(event?.eventEndDate);
+                  if (currentDate > eventEndDate) {
+                    return <span className="badge text-bg-danger">Ended</span>;
+                  } else {
+                    return <span className="badge text-bg-success">Ongoing</span>;
+                  }
                 })()}
               </td>
               <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">

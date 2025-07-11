@@ -14,67 +14,70 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 axios.defaults.baseURL = links.BASE_URL;
 
 // Request Interceptor
-// axios.interceptors.request.use(
-//   (request) => {
-//     const accessToken = localStorage.getItem("accessToken");
-//     if (accessToken) {
-//       request.headers["Authorization"] = `Bearer ${accessToken}`;
-//     }
-//     return request;
-//   },
-//   (error) => Promise.reject(error)
-// );
+axios.interceptors.request.use(
+  (request) => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+    const accessToken = userInfo?.accessToken;
+    if (accessToken) {
+      request.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return request;
+  },
+  (error) => Promise.reject(error)
+);
 
-// axios.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
+axios.interceptors.response.use(
+  (response) => response,
+  console.log("Response interceptor triggered"),
 
-//     if (
-//       error.response &&
-//       error.response.status === 401 &&
-//       !originalRequest._retry
-//     ) {
-//       originalRequest._retry = true;
+  async (error) => {
+    const originalRequest = error.config;
+    console.log("Error in response interceptor:", error);
 
-//       try {
-//         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-//         const refreshToken = userInfo?.refreshToken;
-//         console.log("Refreshing token...");
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
 
-//         if (!refreshToken) throw new Error("No refresh token found");
+      try {
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        const refreshToken = userInfo?.refreshToken;
+        console.log("Refreshing token...");
 
-//         // const response = await axios.post("auth/refresh-token", {
-//         //   refreshToken,
-//         // });
+        if (!refreshToken) throw new Error("No refresh token found");
 
-//         // const { accessToken, refreshToken: newRefreshToken } =
-//         //   response.data?.data;
+        const response = await axios.post("auth/refresh-token", {
+          refreshToken,
+        });
 
-//         // const updatedAccount = {
-//         //   ...userInfo,
-//         //   accessToken: accessToken,
-//         //   refreshToken: newRefreshToken,
-//         // };
-//         // localStorage.setItem("userInfo", JSON.stringify(updatedAccount));
-//         // store.dispatch(userActions.setUserInfo(updatedAccount));
+        const { accessToken, refreshToken: newRefreshToken } =
+          response.data?.data;
 
-//         // Update the authorization header for the original request
-//         // originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+        const updatedAccount = {
+          ...userInfo,
+          accessToken: accessToken,
+          refreshToken: newRefreshToken,
+        };
+        localStorage.setItem("userInfo", JSON.stringify(updatedAccount));
+        store.dispatch(userActions.setUserInfo(updatedAccount));
 
-//         return axios(originalRequest);
-//       } catch (refreshError) {
-//         console.error("Token refresh failed:", refreshError);
-//         localStorage.removeItem("accessToken");
-//         localStorage.removeItem("refreshToken");
-//         // window.location.href = "/";
-//         return Promise.reject(refreshError);
-//       }
-//     }
+        // Update the authorization header for the original request
+        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
-//     return Promise.reject(error);
-//   }
-// );
+        return axios(originalRequest);
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        localStorage.removeItem("userInfo");
+        store.dispatch(userActions.resetUserInfo());
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
