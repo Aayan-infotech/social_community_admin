@@ -14,66 +14,67 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 axios.defaults.baseURL = links.BASE_URL;
 
 // Request Interceptor
-axios.interceptors.request.use(
-  (request) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      request.headers["Authorization"] = `Bearer ${accessToken}`;
-    }
-    return request;
-  },
-  (error) => Promise.reject(error)
-);
+// axios.interceptors.request.use(
+//   (request) => {
+//     const accessToken = localStorage.getItem("accessToken");
+//     if (accessToken) {
+//       request.headers["Authorization"] = `Bearer ${accessToken}`;
+//     }
+//     return request;
+//   },
+//   (error) => Promise.reject(error)
+// );
 
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+// axios.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
 
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
+//     if (
+//       error.response &&
+//       error.response.status === 401 &&
+//       !originalRequest._retry
+//     ) {
+//       originalRequest._retry = true;
 
-      try {
-        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-        const refreshToken = userInfo?.refreshToken;
+//       try {
+//         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+//         const refreshToken = userInfo?.refreshToken;
+//         console.log("Refreshing token...");
 
-        if (!refreshToken) throw new Error("No refresh token found");
+//         if (!refreshToken) throw new Error("No refresh token found");
 
-        const response = await axios.post("auth/refresh-token", {
-          refreshToken,
-        });
+//         // const response = await axios.post("auth/refresh-token", {
+//         //   refreshToken,
+//         // });
 
-        const { accessToken, refreshToken: newRefreshToken } =
-          response.data?.data;
+//         // const { accessToken, refreshToken: newRefreshToken } =
+//         //   response.data?.data;
 
-        const updatedAccount = {
-          ...userInfo,
-          accessToken: accessToken,
-          refreshToken: newRefreshToken,
-        };
-        localStorage.setItem("userInfo", JSON.stringify(updatedAccount));
-        store.dispatch(userActions.setUserInfo(updatedAccount));
+//         // const updatedAccount = {
+//         //   ...userInfo,
+//         //   accessToken: accessToken,
+//         //   refreshToken: newRefreshToken,
+//         // };
+//         // localStorage.setItem("userInfo", JSON.stringify(updatedAccount));
+//         // store.dispatch(userActions.setUserInfo(updatedAccount));
 
-        // Update the authorization header for the original request
-        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+//         // Update the authorization header for the original request
+//         // originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
-        return axios(originalRequest);
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        // window.location.href = "/";
-        return Promise.reject(refreshError);
-      }
-    }
+//         return axios(originalRequest);
+//       } catch (refreshError) {
+//         console.error("Token refresh failed:", refreshError);
+//         localStorage.removeItem("accessToken");
+//         localStorage.removeItem("refreshToken");
+//         // window.location.href = "/";
+//         return Promise.reject(refreshError);
+//       }
+//     }
 
-    return Promise.reject(error);
-  }
-);
+//     return Promise.reject(error);
+//   }
+// );
 
 const queryClient = new QueryClient({
   defaultOptions: {
