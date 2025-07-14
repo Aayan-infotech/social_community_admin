@@ -71,7 +71,6 @@ export const dateFormatForInput = (dateString) => {
 
 export const getEventDropdownOptions = async (token) => {
     try {
-        console.log("Token", token);
         if (!token) {
             throw new Error("Authorization token is required");
         }
@@ -83,7 +82,6 @@ export const getEventDropdownOptions = async (token) => {
                 },
             }
         );
-        console.log("Event dropdown options fetched successfully:", data);
 
         return data?.data || [];
     } catch (error) {
@@ -99,7 +97,6 @@ export const getBookedTicketsByEventId = async (token, eventId, page = 1, limit 
                 Authorization: `Bearer ${token}`,
             },
         });
-        console.log("Booked tickets fetched successfully:", data);
         return data?.data || [];
 
     } catch (error) {
@@ -108,17 +105,18 @@ export const getBookedTicketsByEventId = async (token, eventId, page = 1, limit 
     }
 };
 
-export const getCancelTickets = async (token, eventId) => { 
+export const getCancelledTicketsByEventId = async (token, eventId, page = 1, limit = 10) => {
     try {
-        const { data } = await axios.get(`virtual-events/getCancelledTickets/${eventId}`, {
+        // if (!eventId && eventId != 'undefined') {
+        const { data } = await axios.get(`virtual-events/getCancelledTickets/${eventId}?page=${page}&limit=${limit}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
-        console.log("Cancelled tickets fetched successfully:", data);
         return data?.data || [];
+        // }
     } catch (error) {
         console.error("Error fetching cancelled tickets by event ID:", error);
         throw error;
     }
-}
+};

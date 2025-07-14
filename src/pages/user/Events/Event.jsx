@@ -204,11 +204,8 @@ function Event({ type }) {
                   {new Date(event?.eventStartDate).toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                    year: "numeric"
+                  })}{" "}- {formatTime(event?.eventTimeStart)}
                 </p>
               </td>
               <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
@@ -217,10 +214,8 @@ function Event({ type }) {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  })}{" "}
+                  - {formatTime(event?.eventTimeEnd)}
                 </p>
               </td>
               <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
@@ -230,7 +225,9 @@ function Event({ type }) {
                   if (currentDate > eventEndDate) {
                     return <span className="badge text-bg-danger">Ended</span>;
                   } else {
-                    return <span className="badge text-bg-success">Ongoing</span>;
+                    return (
+                      <span className="badge text-bg-success">Ongoing</span>
+                    );
                   }
                 })()}
               </td>

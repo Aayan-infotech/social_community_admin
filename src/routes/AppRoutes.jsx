@@ -19,6 +19,7 @@ import NotFound from "../components/NotFound";
 import Event from "../pages/user/Events/Event";
 import BookedTickets from "../pages/user/Events/BookedTickets";
 import CancelledTickets from "../pages/user/Events/CancelledTickets";
+import KYCSuccessPage from "../pages/KYCSuccessPage";
 
 export default function AppRoutes() {
   const userState = useSelector((state) => state.user);
@@ -27,6 +28,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/info_pages/:pageURL" element={<FrontendInfoPages />} />
+      <Route path="/kyc-success" element={<KYCSuccessPage />} />
 
       {userInfo?.role?.includes("admin") && (
         <Route

@@ -7,9 +7,10 @@ let isFirstRun = true;
 
 export const useDataTable = ({
     dataQueryFn,
-    dataQueryKey,
+    dataQueryKey = [], // Expect full queryKey array, like ["bookedTickets", eventId, currentPage]
     mutateDeleteFn,
     deleteDataMessage,
+    enabled = true, // pass eventId check here: enabled: !!eventId
 }) => {
     const queryClient = useQueryClient();
     const userState = useSelector((state) => state.user);
@@ -18,29 +19,31 @@ export const useDataTable = ({
 
     const { data, isLoading, isFetching, refetch } = useQuery({
         queryFn: dataQueryFn,
-        queryKey: [dataQueryKey],
+        queryKey: dataQueryKey, // Not wrapped in []
+        enabled,
     });
 
     const { mutate: mutateDeletePost, isLoading: isLoadingDeleteData } =
         useMutation({
             mutationFn: mutateDeleteFn,
-            onSuccess: (data) => {
-                queryClient.invalidateQueries([dataQueryKey]);
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: dataQueryKey });
                 toast.success(deleteDataMessage);
             },
             onError: (error) => {
-                toast.error(error.message);
-                console.log(error);
+                toast.error(error.message || "Something went wrong");
+                console.error(error);
             },
         });
 
     useEffect(() => {
+        if (!enabled) return; // Prevent refetch if eventId is not set
         if (isFirstRun) {
             isFirstRun = false;
             return;
         }
         refetch();
-    }, [refetch, currentPage]);
+    }, [currentPage]);
 
     const searchKeywordHandler = (e) => {
         const { value } = e.target;

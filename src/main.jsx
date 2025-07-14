@@ -28,11 +28,8 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(
   (response) => response,
-  console.log("Response interceptor triggered"),
-
   async (error) => {
     const originalRequest = error.config;
-    console.log("Error in response interceptor:", error);
 
     if (
       error.response &&
@@ -44,7 +41,6 @@ axios.interceptors.response.use(
       try {
         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
         const refreshToken = userInfo?.refreshToken;
-        console.log("Refreshing token...");
 
         if (!refreshToken) throw new Error("No refresh token found");
 
