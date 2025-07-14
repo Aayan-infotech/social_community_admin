@@ -42,11 +42,13 @@ axios.interceptors.response.use(
         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
         const refreshToken = userInfo?.refreshToken;
 
+        console.log("Attempting to refresh token...");
+
         if (!refreshToken) throw new Error("No refresh token found");
 
-        const response = await axios.post("auth/refresh-token", {
-          refreshToken,
-        });
+        // const response = await axios.post("auth/refresh-token", {
+        //   refreshToken,
+        // });
 
         const { accessToken, refreshToken: newRefreshToken } =
           response.data?.data;
