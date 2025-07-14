@@ -142,10 +142,7 @@ function BookedTickets() {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  })}{" "} - { formatTime(ticket?.bookingTime) }
                 </td>
                 <td>
                   <span
@@ -253,11 +250,11 @@ function BookedTickets() {
                                 </p>
                                 <p className="mb-2">
                                   <i className="fas fa-calendar-alt text-success me-2"></i>
-                                  <strong>Start:</strong> {formatDateTime(selectedTicket?.eventDetails?.eventStartDate)}
+                                  <strong>Start:</strong> {formatDateTime(selectedTicket?.eventDetails?.eventStartDate)} {" "} {formatTime(selectedTicket?.eventDetails?.eventStartTime)}
                                 </p>
                                 <p className="mb-0">
                                   <i className="fas fa-calendar-check text-warning me-2"></i>
-                                  <strong>End:</strong> {formatDateTime(selectedTicket?.eventDetails?.eventEndDate)}
+                                  <strong>End:</strong> {formatDateTime(selectedTicket?.eventDetails?.eventEndDate)} {" "} {formatTime(selectedTicket?.eventDetails?.eventEndTime)}
                                 </p>
                               </div>
                             </div>
@@ -327,7 +324,7 @@ function BookedTickets() {
                             </div>
                             <div className="mb-2">
                               <i className="fas fa-calendar text-primary me-2"></i>
-                              <small><strong>Booked:</strong> {formatDateTime(selectedTicket?.bookingDate)}</small>
+                              <small><strong>Booked:</strong> {formatDateTime(selectedTicket?.bookingDate)} {" "} {formatTime(selectedTicket?.bookingTime)}</small>
                             </div>
                             <div className="mb-2">
                               <span className="me-2">📊</span>

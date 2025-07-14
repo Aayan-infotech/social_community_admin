@@ -80,6 +80,10 @@ const LoginPage = () => {
         toast.error(result.message || "Invalid credentials");
       }
     } catch (error) {
+      console.error("Login error:", error);
+      console.error("Error details:", error.response);
+      console.error("Error data:", error.response?.data);
+      console.error("Error Message:", error.response?.data?.message);
       const errorMessage =
         error.response?.data?.message ||
         "Something went wrong. Please try again.";
