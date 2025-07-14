@@ -41,17 +41,26 @@ axios.interceptors.response.use(
       try {
         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
         const refreshToken = userInfo?.refreshToken;
+        console.log("User Info:", userInfo);
+        console.log("Refresh Token:", refreshToken);
 
         console.log("Attempting to refresh token...");
 
         if (!refreshToken) throw new Error("No refresh token found");
 
-        // const response = await axios.post("auth/refresh-token", {
-        //   refreshToken,
-        // });
+        const response = await axios.post("auth/refresh-token", {
+          refreshToken,
+        });
 
         const { accessToken, refreshToken: newRefreshToken } =
           response.data?.data;
+
+        console.log("New Access Token:", accessToken);
+        console.log("New Refresh Token:", newRefreshToken);
+
+        if (!accessToken || !newRefreshToken) {
+          throw new Error("Failed to refresh tokens");
+        }
 
         const updatedAccount = {
           ...userInfo,
