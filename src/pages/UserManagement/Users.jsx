@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import images from "../../contstants/images";
+import { useDebounce } from "../../hook/useDebounce";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -14,6 +15,11 @@ const Users = () => {
   const [error, setError] = useState(null);
   const [selectedUserIndex, setSelectedUserIndex] = useState(null);
   const [modalType, setModalType] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "asc",
+  });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -32,15 +38,31 @@ const Users = () => {
     total_records: 0,
   });
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+
   useEffect(() => {
     fetchUsers();
-  }, [pagination.current_page]);
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      const params = new URLSearchParams({
+        page: pagination.current_page.toString(),
+        limit: pagination.per_page.toString(),
+      });
+
+      if (debouncedSearchTerm.trim()) {
+        params.append("search", debouncedSearchTerm.trim());
+      }
+
+      if (sortConfig.key) {
+        params.append("sortBy", sortConfig.key);
+        params.append("sortOrder", sortConfig.direction);
+      }
+
       const response = await axios.get(
-        `users/get-all-users?page=${pagination.current_page}&limit=${pagination.per_page}`
+        `users/get-all-users?${params.toString()}`
       );
 
       setUsers(response.data.data.users);
@@ -56,6 +78,36 @@ const Users = () => {
       setLoading(false);
       toast.error("Failed to fetch users");
     }
+  };
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 })); // Reset to first page
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 })); // Reset to first page
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return <i className="bi bi-arrow-down-up ms-1 text-muted"></i>;
+    }
+    return sortConfig.direction === "asc" ? (
+      <i className="bi bi-arrow-up ms-1 text-primary"></i>
+    ) : (
+      <i className="bi bi-arrow-down ms-1 text-primary"></i>
+    );
   };
 
   const handleView = (index) => {
@@ -154,15 +206,82 @@ const Users = () => {
     <div className="p-4">
       <h3 className="mb-4 fw-bold text-dark">👥 User Management</h3>
 
+      {/* Search Bar */}
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <small className="text-muted">
+            Showing{" "}
+            {Number(pagination.current_page - 1) * Number(10) + 1} to{" "}
+            {(Number(pagination.current_page - 1) * Number(10) + Number(users.length))}{" "}
+            of {pagination.total_records} users
+            {searchTerm && <span> (filtered)</span>}
+          </small>
+        </div>
+        <div className="col-md-6">
+          <div className="input-group">
+            <span className="input-group-text">
+              <i className="bi bi-search"></i>
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search users by name, email, or mobile..."
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            {searchTerm && (
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={clearSearch}
+                title="Clear search"
+              >
+                <i className="bi bi-x-lg"></i>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="table-responsive">
         <table className="table table-bordered align-middle text-center table-striped">
           <thead className="table-dark">
             <tr>
-              <th>Avatar & Name</th>
-              <th>Email</th>
-              <th>Mobile</th>
-              <th>Gender</th>
-              <th>Status</th>
+              <th
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSort("name")}
+              >
+                Avatar & Name
+                {getSortIcon("name")}
+              </th>
+              <th
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSort("email")}
+              >
+                Email
+                {getSortIcon("email")}
+              </th>
+              <th
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSort("mobile")}
+              >
+                Mobile
+                {getSortIcon("mobile")}
+              </th>
+              <th
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSort("gender")}
+              >
+                Gender
+                {getSortIcon("gender")}
+              </th>
+              <th
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSort("isDeleted")}
+              >
+                Status
+                {getSortIcon("isDeleted")}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -213,7 +332,9 @@ const Users = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="text-center">
-                  No users found
+                  {searchTerm
+                    ? "No users found matching your search"
+                    : "No users found"}
                 </td>
               </tr>
             )}
@@ -222,55 +343,57 @@ const Users = () => {
       </div>
 
       {/* Pagination */}
-      <nav aria-label="Page navigation">
-        <ul className="pagination justify-content-center">
-          <li
-            className={`page-item ${
-              pagination.current_page === 1 ? "disabled" : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => handlePageChange(pagination.current_page - 1)}
+      {pagination.total_page > 1 && (
+        <nav aria-label="Page navigation">
+          <ul className="pagination justify-content-center">
+            <li
+              className={`page-item ${
+                pagination.current_page === 1 ? "disabled" : ""
+              }`}
             >
-              Previous
-            </button>
-          </li>
-
-          {Array.from({ length: pagination.total_page }, (_, i) => i + 1).map(
-            (page) => (
-              <li
-                key={page}
-                className={`page-item ${
-                  page === pagination.current_page ? "active" : ""
-                }`}
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(pagination.current_page - 1)}
               >
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </button>
-              </li>
-            )
-          )}
+                Previous
+              </button>
+            </li>
 
-          <li
-            className={`page-item ${
-              pagination.current_page === pagination.total_page
-                ? "disabled"
-                : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => handlePageChange(pagination.current_page + 1)}
+            {Array.from({ length: pagination.total_page }, (_, i) => i + 1).map(
+              (page) => (
+                <li
+                  key={page}
+                  className={`page-item ${
+                    page === pagination.current_page ? "active" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                </li>
+              )
+            )}
+
+            <li
+              className={`page-item ${
+                pagination.current_page === pagination.total_page
+                  ? "disabled"
+                  : ""
+              }`}
             >
-              Next
-            </button>
-          </li>
-        </ul>
-      </nav>
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(pagination.current_page + 1)}
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
 
       {/* Modal */}
       {modalType && (
@@ -300,9 +423,7 @@ const Users = () => {
                   <div className="row">
                     <div className="col-md-4 text-center">
                       <img
-                        src={
-                          formData.profile_image || images.placeholder
-                        }
+                        src={formData.profile_image || images.placeholder}
                         alt="profile"
                         className="img-fluid rounded-circle mb-3"
                         style={{
