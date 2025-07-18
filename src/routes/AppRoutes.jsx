@@ -20,6 +20,8 @@ import Event from "../pages/user/Events/Event";
 import BookedTickets from "../pages/user/Events/BookedTickets";
 import CancelledTickets from "../pages/user/Events/CancelledTickets";
 import KYCSuccessPage from "../pages/KYCSuccessPage";
+import ReportedPost from "../pages/ReportedPost/reportedPost";
+
 
 export default function AppRoutes() {
   const userState = useSelector((state) => state.user);
@@ -50,6 +52,7 @@ export default function AppRoutes() {
           <Route path="faqs" element={<FAQ />} />
           <Route path="contact" element={<ContactUs />} />
           <Route path="events" element={<Events />} />
+          <Route path="reported-posts" element={<ReportedPost />} />
         </Route>
       )}
 

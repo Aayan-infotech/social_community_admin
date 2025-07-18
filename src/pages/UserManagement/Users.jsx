@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../../components/Sidebar/Sidebar";
-import Topbar from "../../components/Topbar/Topbar";
 import "./Users.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,6 +6,9 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import images from "../../contstants/images";
 import { useDebounce } from "../../hook/useDebounce";
+import Swal from "sweetalert2";
+import Th from "../../components/Th";
+import Table from "../../components/Table";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -48,8 +49,8 @@ const Users = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        page: pagination.current_page.toString(),
-        limit: pagination.per_page.toString(),
+        page: pagination.current_page,
+        limit: pagination.per_page,
       });
 
       if (debouncedSearchTerm.trim()) {
@@ -101,13 +102,47 @@ const Users = () => {
 
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
-      return <i className="bi bi-arrow-down-up ms-1 text-muted"></i>;
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-secondary"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
     }
-    return sortConfig.direction === "asc" ? (
-      <i className="bi bi-arrow-up ms-1 text-primary"></i>
-    ) : (
-      <i className="bi bi-arrow-down ms-1 text-primary"></i>
-    );
+    if (sortConfig.direction === "asc") {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-white"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    if (sortConfig.direction === "desc") {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-secondary"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-white"></i>
+        </div>
+      );
+    }
   };
 
   const handleView = (index) => {
@@ -163,6 +198,47 @@ const Users = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleBlock = async (index, type) => {
+    setSelectedUserIndex(index);
+    const userId = users[index].userId;
+    Swal.fire({
+      title: "Are you sure?",
+      text:
+        type === "activate"
+          ? "Do you want to activate this user?"
+          : "Do you want to block this user?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText:
+        type === "activate" ? "Yes, activate it!" : "Yes, block it!",
+      cancelButtonText: "No, cancel!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.put(`users/update-user-status/${userId}`, {
+            isDeleted: type === "activate" ? false : true,
+          });
+          setUsers((prev) =>
+            prev.map((user) =>
+              user.userId === userId
+                ? { ...user, isDeleted: type === "activate" ? false : true }
+                : user
+            )
+          );
+          Swal.fire(
+            type === "activate" ? "Activated!" : "Blocked!",
+            type === "activate"
+              ? "User has been activated."
+              : "User has been blocked.",
+            "success"
+          );
+        } catch (error) {
+          Swal.fire("Error!", "Failed to block user.", "error");
+        }
+      }
+    });
+  };
+
   const handleSave = async () => {
     try {
       const userId = users[selectedUserIndex].userId;
@@ -178,15 +254,11 @@ const Users = () => {
       handleCloseModal();
       toast.success("User updated successfully!");
     } catch (err) {
-      toast.error("Failed to update user");
+      toast.error(err.response.data.message || "Failed to update user");
     }
   };
 
-  const handlePageChange = (newPage) => {
-    if (newPage > 0 && newPage <= pagination.total_page) {
-      setPagination((prev) => ({ ...prev, current_page: newPage }));
-    }
-  };
+
 
   if (loading) {
     return (
@@ -203,86 +275,41 @@ const Users = () => {
   }
 
   return (
-    <div className="p-4">
-      <h3 className="mb-4 fw-bold text-dark">👥 User Management</h3>
-
-      {/* Search Bar */}
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <small className="text-muted">
-            Showing{" "}
-            {Number(pagination.current_page - 1) * Number(10) + 1} to{" "}
-            {(Number(pagination.current_page - 1) * Number(10) + Number(users.length))}{" "}
-            of {pagination.total_records} users
-            {searchTerm && <span> (filtered)</span>}
-          </small>
-        </div>
-        <div className="col-md-6">
-          <div className="input-group">
-            <span className="input-group-text">
-              <i className="bi bi-search"></i>
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search users by name, email, or mobile..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            {searchTerm && (
-              <button
-                className="btn btn-outline-secondary"
-                type="button"
-                onClick={clearSearch}
-                title="Clear search"
-              >
-                <i className="bi bi-x-lg"></i>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="table-responsive">
+    <>
+      <Table
+        PageTitle="👥 User Management"
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={users.length}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+      >
         <table className="table table-bordered align-middle text-center table-striped">
           <thead className="table-dark">
             <tr>
-              <th
-                style={{ cursor: "pointer" }}
+              <Th
+                children="Avatar & Name"
+                sortIcon={getSortIcon("name")}
                 onClick={() => handleSort("name")}
-              >
-                Avatar & Name
-                {getSortIcon("name")}
-              </th>
-              <th
-                style={{ cursor: "pointer" }}
+              />
+              <Th
+                children="Email"
+                sortIcon={getSortIcon("email")}
                 onClick={() => handleSort("email")}
-              >
-                Email
-                {getSortIcon("email")}
-              </th>
-              <th
-                style={{ cursor: "pointer" }}
+              />
+              <Th
+                children="Mobile"
+                sortIcon={getSortIcon("mobile")}
                 onClick={() => handleSort("mobile")}
-              >
-                Mobile
-                {getSortIcon("mobile")}
-              </th>
-              <th
-                style={{ cursor: "pointer" }}
+              />
+              <Th
+                children="Gender"
+                sortIcon={getSortIcon("gender")}
                 onClick={() => handleSort("gender")}
-              >
-                Gender
-                {getSortIcon("gender")}
-              </th>
-              <th
-                style={{ cursor: "pointer" }}
-                onClick={() => handleSort("isDeleted")}
-              >
-                Status
-                {getSortIcon("isDeleted")}
-              </th>
-              <th>Actions</th>
+              />
+              <Th children="Status" />
+              <Th children="Actions" />
             </tr>
           </thead>
           <tbody>
@@ -314,6 +341,22 @@ const Users = () => {
                     )}
                   </td>
                   <td>
+                    {/* Create Active and Block buttons */}
+                    {user.isDeleted ? (
+                      <i
+                        className="bi bi-check2-circle text-success fs-5 me-3"
+                        title="Activate User"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleBlock(idx, "activate")}
+                      ></i>
+                    ) : (
+                      <i
+                        className="bi bi-ban text-danger fs-5 me-3"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleBlock(idx, "block")}
+                        title="Block User"
+                      ></i>
+                    )}
                     <i
                       className="bi bi-eye text-primary fs-5 me-3"
                       style={{ cursor: "pointer" }}
@@ -340,60 +383,7 @@ const Users = () => {
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Pagination */}
-      {pagination.total_page > 1 && (
-        <nav aria-label="Page navigation">
-          <ul className="pagination justify-content-center">
-            <li
-              className={`page-item ${
-                pagination.current_page === 1 ? "disabled" : ""
-              }`}
-            >
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(pagination.current_page - 1)}
-              >
-                Previous
-              </button>
-            </li>
-
-            {Array.from({ length: pagination.total_page }, (_, i) => i + 1).map(
-              (page) => (
-                <li
-                  key={page}
-                  className={`page-item ${
-                    page === pagination.current_page ? "active" : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() => handlePageChange(page)}
-                  >
-                    {page}
-                  </button>
-                </li>
-              )
-            )}
-
-            <li
-              className={`page-item ${
-                pagination.current_page === pagination.total_page
-                  ? "disabled"
-                  : ""
-              }`}
-            >
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(pagination.current_page + 1)}
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      )}
+      </Table>
 
       {/* Modal */}
       {modalType && (
@@ -593,7 +583,7 @@ const Users = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

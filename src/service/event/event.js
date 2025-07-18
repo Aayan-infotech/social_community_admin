@@ -120,3 +120,24 @@ export const getCancelledTicketsByEventId = async (token, eventId, page = 1, lim
         throw error;
     }
 };
+
+
+export const dateTimeFormat = (date, time) => {
+    const formattedDate = new Intl.DateTimeFormat("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+    }).format(new Date(date));
+    const formattedTime = formatTime(time);
+    return `${formattedDate} - ${formattedTime}`;
+}
+
+export const combineDateAndTime = (date, time) => {
+    if (!date || !time) {
+        return null;
+    }
+    const combinedDateTimeString = `${date.slice(0, 10)}T${time}`;
+    const combinedDateTime = new Date(combinedDateTimeString);
+    return combinedDateTime;
+}

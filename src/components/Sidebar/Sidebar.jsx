@@ -13,6 +13,7 @@ export default function Sidebar() {
   const [openMarketPlace, setOpenMarketPlace] = useState(false);
   const [openInfoPages, setOpenInfoPages] = useState(false);
   const [openEventManagement, setOpenEventManagement] = useState(false);
+  const [openReportedPosts, setOpenReportedPosts] = useState(false);
 
   // Check if a link is active
   const isActiveLink = (path) => {
@@ -221,6 +222,40 @@ export default function Sidebar() {
                       }`}
                     >
                       Sub Categories
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
+
+
+            {/* Reported Posts */}
+            <li className="sidebar-item">
+              <div
+                className={`sidebar-link ${
+                  isActiveLink("/admin/reported-posts") ? "active" : ""
+                }`}
+                onClick={() => setOpenReportedPosts(!openReportedPosts)}
+              >
+                <span>
+                  <i className="bi bi-exclamation-circle me-2"></i>Reported Posts
+                </span>
+                <i
+                  className={`bi ${
+                    openReportedPosts ? "bi-chevron-up" : "bi-chevron-down"
+                  }`}
+                ></i>
+              </div>
+              {openReportedPosts && (
+                <ul className="sidebar-submenu">
+                  <li>
+                    <Link
+                      to="/admin/reported-posts"
+                      className={`sidebar-sublink ${
+                        isActiveLink("/admin/reported-posts") ? "active" : ""
+                      }`}
+                    >
+                      All Reported Posts
                     </Link>
                   </li>
                 </ul>

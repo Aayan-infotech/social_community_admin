@@ -1,162 +1,40 @@
-import React, { useState } from "react";
-import DataTable from "../../../components/admin/DataTable";
-import images from "../../../contstants/images";
-import { useDataTable } from "../../../hook/useDataTable";
-import {
-  combineDateAndTime,
-  dateFormatForInput,
-  dateTimeFormat,
-  formatTime,
-  getAllEvents,
-  updateEvent,
-} from "../../../service/event/event";
-import { toast } from "react-toastify";
+import React from "react";
+import { useDataTable } from "../../hook/useDataTable";
+import { getAllEvents } from "../../service/event/event";
 
-function Event({ type }) {
-  const [userSelectedEvent, setUserSelectedEvent] = useState(null);
-  const [modalType, setModalType] = useState(null);
-  const [formData, setFormData] = useState({
-    _id: "",
-    eventName: "",
-    eventLocation: "",
-    eventStartDate: "",
-    eventEndDate: "",
-    eventTimeStart: "",
-    eventTimeEnd: "",
-    ticketPrice: "",
-    eventImage: null,
-    eventDescription: "",
-  });
+function ReportedPost() {
 
-  const handleView = (index) => {
-    setUserSelectedEvent(eventsData?.data[index]);
-    setFormData({
-      eventName: eventsData?.data[index]?.eventName || "",
-      eventLocation: eventsData?.data[index]?.eventLocation || "",
-      eventStartDate: eventsData?.data[index]?.eventStartDate || "",
-      eventEndDate: eventsData?.data[index]?.eventEndDate || "",
-      eventTimeStart: eventsData?.data[index]?.eventTimeStart || "",
-      eventTimeEnd: eventsData?.data[index]?.eventTimeEnd || "",
-      ticketPrice: eventsData?.data[index]?.ticketPrice || "",
-      eventImage: eventsData?.data[index]?.eventImage || null,
-      eventDescription: eventsData?.data[index]?.eventDescription || "",
-    });
-    setModalType("view");
-  };
-
-  const handleEdit = (index) => {
-    setUserSelectedEvent(eventsData?.data[index]);
-    setFormData({
-      eventName: eventsData?.data[index]?.eventName || "",
-      eventLocation: eventsData?.data[index]?.eventLocation || "",
-      eventStartDate:
-        dateFormatForInput(eventsData?.data[index]?.eventStartDate) || "",
-      eventEndDate:
-        dateFormatForInput(eventsData?.data[index]?.eventEndDate) || "",
-      eventTimeStart: eventsData?.data[index]?.eventTimeStart || "",
-      eventTimeEnd: eventsData?.data[index]?.eventTimeEnd || "",
-      ticketPrice: eventsData?.data[index]?.ticketPrice || "",
-      eventImage: eventsData?.data[index]?.eventImage || null,
-      eventDescription: eventsData?.data[index]?.eventDescription || "",
-    });
-    setModalType("edit");
-  };
-
-  const handleCloseModal = () => {
-    setUserSelectedEvent(null);
-    setFormData({
-      _id: "",
-      eventName: "",
-      eventLocation: "",
-      eventStartDate: "",
-      eventEndDate: "",
-      eventTimeStart: "",
-      eventTimeEnd: "",
-      ticketPrice: "",
-      eventImage: null,
-      eventDescription: "",
-    });
-    setModalType(null);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        eventImage: file,
-      }));
-    }
-  };
-
-  const handleUpdateEvent = async () => {
-    try {
-      const updatedEvent = await updateEvent(
-        userState?.userInfo?.accessToken,
-        userSelectedEvent?._id,
-        formData
-      );
-      toast.success("Event updated successfully");
-      queryClient.invalidateQueries(["events"]);
-      handleCloseModal();
-      setFormData({
-        _id: "",
-        eventName: "",
-        eventLocation: "",
-        eventStartDate: "",
-        eventEndDate: "",
-        eventTimeStart: "",
-        eventTimeEnd: "",
-        ticketPrice: "",
-        eventImage: null,
-        eventDescription: "",
-      });
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to update event";
-      toast.error(errorMessage);
-    }
-  };
-
-  const {
-    userState,
-    currentPage,
-    searchKeyword,
-    data: eventsData,
-    isLoading,
-    isFetching,
-    isLoadingDeleteData,
-    queryClient,
-    searchKeywordHandler,
-    submitSearchKeywordHandler,
-    deleteDataHandler,
-    setCurrentPage,
-  } = useDataTable({
-    dataQueryFn: () =>
-      getAllEvents(
-        userState?.userInfo?.accessToken,
+      const {
+        userState,
         currentPage,
-        10,
         searchKeyword,
-        type
-      ),
-    dataQueryKey: ["events", type],
-    deleteDataMessage: "Event is deleted",
-    mutateDeleteFn: ({ slug, token }) => {
-      return deleteEvent({
-        slug,
-        token,
+        data: eventsData,
+        isLoading,
+        isFetching,
+        isLoadingDeleteData,
+        queryClient,
+        searchKeywordHandler,
+        submitSearchKeywordHandler,
+        deleteDataHandler,
+        setCurrentPage,
+      } = useDataTable({
+        dataQueryFn: () =>
+          getAllEvents(
+            userState?.userInfo?.accessToken,
+            currentPage,
+            10,
+            searchKeyword,
+            type
+          ),
+        dataQueryKey: ["events", type],
+        deleteDataMessage: "Event is deleted",
+        mutateDeleteFn: ({ slug, token }) => {
+          return deleteEvent({
+            slug,
+            token,
+          });
+        },
       });
-    },
-  });
 
   return (
     <>
@@ -214,8 +92,16 @@ function Event({ type }) {
               <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
                 {(() => {
                   const currentDate = new Date();
-                  const eventEndDateTime = combineDateAndTime(event?.eventEndDate, event?.eventTimeEnd);
-                  console.log("Current Date:", currentDate , "Event End Date Time:", eventEndDateTime);
+                  const eventEndDateTime = combineDateAndTime(
+                    event?.eventEndDate,
+                    event?.eventTimeEnd
+                  );
+                  console.log(
+                    "Current Date:",
+                    currentDate,
+                    "Event End Date Time:",
+                    eventEndDateTime
+                  );
                   if (currentDate > eventEndDateTime) {
                     return <span className="badge text-bg-danger">Ended</span>;
                   } else {
@@ -481,4 +367,4 @@ function Event({ type }) {
   );
 }
 
-export default Event;
+export default ReportedPost;

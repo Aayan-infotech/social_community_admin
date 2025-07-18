@@ -10,14 +10,16 @@ import Topbar from "./Topbar/Topbar";
 // import Loading from "../../components/Loading/Loading";
 
 const AdminLayout = () => {
-//   const navigate = useNavigate();
+  //   const navigate = useNavigate();
   return (
     <div className="d-flex">
       <Sidebar />
       <div className="flex-grow-1 bg-light">
         <Topbar />
-        <div className="p-4">
-          <Outlet />
+        <div className="card m-3">
+          <div className="card-body">
+            <Outlet />
+          </div>
         </div>
       </div>
     </div>

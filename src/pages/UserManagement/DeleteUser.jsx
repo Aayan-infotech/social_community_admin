@@ -1,74 +1,146 @@
-import React, { useState, useEffect } from "react";
-import Sidebar from "../../components/Sidebar/Sidebar";
-import Topbar from "../../components/Topbar/Topbar";
-import "./Users.css";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
+import { useDebounce } from "../../hook/useDebounce";
+import Table from "../../components/Table";
+import Th from "../../components/Th";
 
-export default function DeleteUser() {
+const DeleteUser = () => {
   const [deleteRequests, setDeleteRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [actionType, setActionType] = useState(""); // should be "approved" or "rejected"
+  const [actionType, setActionType] = useState("");
   const [processing, setProcessing] = useState(false);
+
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_page: 1,
+    per_page: 10,
+    total_records: 0,
+  });
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
 
   useEffect(() => {
     fetchDeleteRequests();
-  }, []);
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig]);
 
   const fetchDeleteRequests = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`users/get-all-delete-request`);
+      const params = new URLSearchParams({
+        page: pagination.current_page,
+        limit: pagination.per_page,
+      });
 
+      if (debouncedSearchTerm.trim()) {
+        params.append("search", debouncedSearchTerm.trim());
+      }
+
+      if (sortConfig.key) {
+        params.append("sortBy", sortConfig.key);
+        params.append("sortOrder", sortConfig.direction);
+      }
+
+      const response = await axios.get(
+        `users/get-all-delete-request?${params}`
+      );
       if (response.data.success) {
-        const requests = response.data.data?.deleteRequests || [];
-        setDeleteRequests(requests);
-
-        if (requests.length === 0) {
-          toast.info("No delete account requests found");
-        }
+        const data = response.data.data;
+        setDeleteRequests(data.deleteRequests);
+        setPagination({
+          current_page: data.current_page,
+          total_page: data.total_page,
+          per_page: data.per_page,
+          total_records: data.total_records,
+        });
       } else {
         toast.error(response.data.message || "Failed to fetch requests");
       }
-    } catch (error) {
+    } catch (err) {
+      setError(err.message);
       toast.error("Failed to fetch delete requests");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-secondary"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="d-flex flex-column align-items-center"
+        style={{ fontSize: "10px" }}
+      >
+        <i
+          className={`bi bi-caret-up-fill ${
+            sortConfig.direction === "asc" ? "text-white" : "text-secondary"
+          }`}
+          style={{ marginBottom: "-8px" }}
+        ></i>
+        <i
+          className={`bi bi-caret-down-fill ${
+            sortConfig.direction === "desc" ? "text-white" : "text-secondary"
+          }`}
+        ></i>
+      </div>
+    );
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
   const handleActionClick = (request, action) => {
     setSelectedRequest(request);
-    setActionType(action); // must be "approved" or "rejected"
+    setActionType(action);
     setShowConfirmation(true);
   };
 
   const processRequest = async () => {
     try {
       setProcessing(true);
-
-      const response = await axios.put(
-        "users/update-delete-request",
-        {
-          requestId: selectedRequest._id,
-          status: actionType, // "approved" or "rejected"
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.put("users/update-delete-request", {
+        requestId: selectedRequest._id,
+        status: actionType,
+      });
 
       if (response.data.success) {
-        toast.success(
-          response.data.message || "Request processed successfully"
-        );
-
-        // Remove request from list after success
+        toast.success(response.data.message || "Request processed");
         setDeleteRequests((prev) =>
           prev.filter((req) => req._id !== selectedRequest._id)
         );
@@ -83,28 +155,57 @@ export default function DeleteUser() {
     }
   };
 
-  return (
-    <div className="p-4">
-      <h3 className="mb-4 fw-bold text-dark">🗑️ Delete Account Requests</h3>
-
-      {loading ? (
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status"></div>
+  if (loading) {
+    return (
+      <div className="p-4 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
-      ) : deleteRequests.length > 0 ? (
-        <div className="table-responsive">
-          <table className="table table-bordered align-middle text-center table-striped">
-            <thead className="table-dark">
-              <tr>
-                <th>User Info</th>
-                <th>Request Details</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deleteRequests.map((request) => (
-                <tr key={request._id}>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-4 text-center text-danger">Error: {error}</div>;
+  }
+
+  return (
+    <>
+      {console.log(deleteRequests?.length || 0)}
+      <Table
+        PageTitle="🗑️ Delete Account Requests"
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={deleteRequests?.length || 0}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+      >
+        <table className="table table-bordered align-middle text-center table-striped">
+          <thead className="table-dark">
+            <tr>
+              <Th
+                children="User Info"
+                sortIcon={getSortIcon("userInfo")}
+                onClick={() => handleSort("userInfo")}
+              />
+              <Th
+                children="Request Details"
+                sortIcon={getSortIcon("createdAt")}
+                onClick={() => handleSort("createdAt")}
+              />
+              <Th
+                children="Status"
+                sortIcon={getSortIcon("status")}
+                onClick={() => handleSort("status")}
+              />
+              <Th children="Actions" />
+            </tr>
+          </thead>
+          <tbody>
+            {Array.isArray(deleteRequests) && deleteRequests.length > 0 ? (
+              deleteRequests.map((request, idx) => (
+                <tr key={request._id || idx}>
                   <td className="text-start">
                     <div className="d-flex align-items-center gap-2">
                       <img
@@ -169,13 +270,19 @@ export default function DeleteUser() {
                     )}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="alert alert-info">No delete account requests found</div>
-      )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center">
+                  {searchTerm
+                    ? "No delete requests match your search."
+                    : "No delete requests found."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Table>
 
       {/* Confirmation Modal */}
       {showConfirmation && (
@@ -215,7 +322,6 @@ export default function DeleteUser() {
               </div>
               <div className="modal-footer">
                 <button
-                  type="button"
                   className="btn btn-secondary"
                   onClick={() => setShowConfirmation(false)}
                   disabled={processing}
@@ -223,7 +329,6 @@ export default function DeleteUser() {
                   Cancel
                 </button>
                 <button
-                  type="button"
                   className={`btn ${
                     actionType === "approved" ? "btn-danger" : "btn-warning"
                   }`}
@@ -244,6 +349,8 @@ export default function DeleteUser() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
-}
+};
+
+export default DeleteUser;
