@@ -69,8 +69,10 @@ axios.interceptors.response.use(
         }
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
+        console.error("Logging out user due to token refresh failure");
         localStorage.removeItem("userInfo");
         store.dispatch(userActions.resetUserInfo());
+        window.location.href = "/"; 
         return Promise.reject(refreshError);
       }
     }

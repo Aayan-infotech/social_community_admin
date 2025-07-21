@@ -215,7 +215,6 @@ function Event({ type }) {
                 {(() => {
                   const currentDate = new Date();
                   const eventEndDateTime = combineDateAndTime(event?.eventEndDate, event?.eventTimeEnd);
-                  console.log("Current Date:", currentDate , "Event End Date Time:", eventEndDateTime);
                   if (currentDate > eventEndDateTime) {
                     return <span className="badge text-bg-danger">Ended</span>;
                   } else {

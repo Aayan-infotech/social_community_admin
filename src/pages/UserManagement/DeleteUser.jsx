@@ -171,7 +171,6 @@ const DeleteUser = () => {
 
   return (
     <>
-      {console.log(deleteRequests?.length || 0)}
       <Table
         PageTitle="🗑️ Delete Account Requests"
         pagination={pagination}
