@@ -52,6 +52,7 @@ export default function AppRoutes() {
           <Route path="faqs" element={<FAQ />} />
           <Route path="contact" element={<ContactUs />} />
           <Route path="events" element={<Events />} />
+          
           <Route path="reported-posts" element={<ReportedPost />} />
         </Route>
       )}
