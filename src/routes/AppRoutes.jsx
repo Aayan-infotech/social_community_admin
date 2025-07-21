@@ -20,7 +20,7 @@ import Event from "../pages/user/Events/Event";
 import BookedTickets from "../pages/user/Events/BookedTickets";
 import CancelledTickets from "../pages/user/Events/CancelledTickets";
 import KYCSuccessPage from "../pages/KYCSuccessPage";
-import ReportedPost from "../pages/ReportedPost/reportedPost";
+import ReportedPost from "../pages/ReportedPost/ReportedPost";
 
 
 export default function AppRoutes() {

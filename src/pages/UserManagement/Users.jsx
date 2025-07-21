@@ -280,7 +280,7 @@ const Users = () => {
         PageTitle="👥 User Management"
         pagination={pagination}
         setPagination={setPagination}
-        dataLength={users.length}
+        dataLength={users?.length || 0}
         searchTerm={searchTerm}
         handleSearch={handleSearch}
         clearSearch={clearSearch}
