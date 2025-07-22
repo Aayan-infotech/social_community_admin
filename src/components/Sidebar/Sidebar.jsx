@@ -228,7 +228,6 @@ export default function Sidebar() {
               )}
             </li>
 
-
             {/* Reported Posts */}
             <li className="sidebar-item">
               <div
@@ -238,7 +237,8 @@ export default function Sidebar() {
                 onClick={() => setOpenReportedPosts(!openReportedPosts)}
               >
                 <span>
-                  <i className="bi bi-exclamation-circle me-2"></i>Reported Posts
+                  <i className="bi bi-exclamation-circle me-2"></i>Reported
+                  Posts
                 </span>
                 <i
                   className={`bi ${
@@ -291,16 +291,6 @@ export default function Sidebar() {
                       }`}
                     >
                       All Events
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/admin/create-event"
-                      className={`sidebar-sublink ${
-                        isActiveLink("/admin/create-event") ? "active" : ""
-                      }`}
-                    >
-                      Create Event
                     </Link>
                   </li>
                 </ul>

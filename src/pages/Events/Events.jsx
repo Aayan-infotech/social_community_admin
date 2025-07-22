@@ -1,31 +1,215 @@
-import React from "react";
-import images from "../../contstants/images";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { useDebounce } from "../../hook/useDebounce";
+import Table from "../../components/Table";
+import Th from "../../components/Th";
+import { dateTimeFormat } from "../../service/event/event";
 
-function Events() {
+const Events = () => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_page: 1,
+    per_page: 10,
+    total_records: 0,
+  });
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+
+  useEffect(() => {
+    fetchevents();
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig]);
+
+  const fetchevents = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: pagination.current_page,
+        limit: pagination.per_page,
+      });
+      if (debouncedSearchTerm.trim())
+        params.append("search", debouncedSearchTerm);
+      if (sortConfig.key) {
+        params.append("sortBy", sortConfig.key);
+        params.append("sortOrder", sortConfig.direction);
+      }
+
+      const response = await axios.get(`virtual-events/getAllEvents?${params}`);
+      if (response.data.success) {
+        setEvents(response.data.data.events);
+        setPagination({
+          current_page: response.data.data.current_page,
+          total_page: response.data.data.total_page,
+          per_page: response.data.data.per_page,
+          total_records: response.data.data.total_records,
+        });
+      } else {
+        toast.error(response.data.message || "Failed to fetch events");
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error("Failed to fetch events");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc")
+      direction = "desc";
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-secondary"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    if (sortConfig.direction === "asc") {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-white"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    if (sortConfig.direction === "desc") {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-secondary"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-white"></i>
+        </div>
+      );
+    }
+  };
+
+  const handleStatusChange = async (id, status) => {
+    Swal.fire({
+      title: `Are you sure?`,
+      text: `You want to ${status ? "approve" : "reject"} this business!`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Yes, ${status ? "approve" : "reject"} it!`,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.put(`nearby/update-business-status`, {
+            businessId: id,
+            status,
+          });
+          if (response.data.success) {
+            toast.success(
+              `Business ${status ? "approved" : "rejected"} successfully`
+            );
+            fetchevents();
+          } else {
+            toast.error(response.data.message || "Operation failed");
+          }
+        } catch (error) {
+          toast.error("Failed to update business status");
+        }
+      }
+    });
+  };
+
   return (
-    <div className="p-4">
-      <h3 className="mb-4 fw-bold text-dark">👥 User Management</h3>
-
-      <div className="table-responsive">
+    <>
+      <Table
+        PageTitle="🏢 All Events"
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={events.length || 0}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+      >
         <table className="table table-bordered align-middle text-center table-striped">
           <thead className="table-dark">
             <tr>
-              <th>Avatar & Name</th>
-              <th>Email</th>
-              <th>Mobile</th>
-              <th>Gender</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <Th
+                children="Event Image & Name"
+                sortIcon={getSortIcon("category.category_name")}
+                onClick={() => handleSort("category.category_name")}
+              />
+              <Th
+                children="Event Location"
+                sortIcon={getSortIcon("businessName")}
+                onClick={() => handleSort("businessName")}
+              />
+              <Th
+                children="Event Start Date & Time"
+                sortIcon={getSortIcon("eventStart")}
+                onClick={() => handleSort("eventStart")}
+              />
+              <Th
+                children="Event End Date & Time"
+                sortIcon={getSortIcon("eventEnd")}
+                onClick={() => handleSort("eventEnd")}
+              />
+              <Th 
+                children="Organized By"
+                sortIcon={getSortIcon("userName")}
+                onClick={() => handleSort("userName")}
+              />
+              <Th
+                children="Status"
+                sortIcon={getSortIcon("status")}
+                onClick={() => handleSort("status")}
+              />
+              <Th children="Action" />
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 ? (
-              users.map((user, idx) => (
-                <tr key={user._id}>
+            {events.length > 0 ? (
+              events.map((event) => (
+                <tr key={event._id}>
                   <td className="d-flex align-items-center gap-2 justify-content-start">
                     <img
-                      src={user.profile_image || images.placeholder}
-                      alt="avatar"
+                      src={event.eventImage || images.placeholder}
+                      alt={event.eventName}
                       className="rounded-circle"
                       width="40"
                       height="40"
@@ -34,296 +218,54 @@ function Events() {
                         e.target.src = images.placeholder;
                       }}
                     />
-                    <span>{user.name}</span>
+                    <span>{event.eventName}</span>
                   </td>
-                  <td>{user.email}</td>
-                  <td className="text-success">{user.mobile}</td>
-                  <td>{user.gender}</td>
+                  <td>{event.eventLocation.charAt(0).toUpperCase() + event.eventLocation.slice(1)}</td>
+                  <td>{dateTimeFormat(event.eventStartDate,event.eventTimeStart)}</td>
+                  <td>{dateTimeFormat(event.eventEndDate,event.eventTimeEnd)}</td>
+                  <td>{event?.userDetails?.name}</td>
                   <td>
-                    {user.isDeleted ? (
-                      <span className="badge bg-danger">Inactive</span>
-                    ) : (
+                    {event.status === true ? (
                       <span className="badge bg-success">Active</span>
+                    ) : (
+                      <span className="badge bg-danger">Inactive</span>
                     )}
                   </td>
                   <td>
                     <i
-                      className="bi bi-eye text-primary fs-5 me-3"
+                      className="bi bi-check-circle text-success fs-5"
                       style={{ cursor: "pointer" }}
-                      onClick={() => handleView(idx)}
-                      title="View User"
+                      onClick={() => handleStatusChange(event._id, true)}
+                      title="Approve"
                     ></i>
                     <i
-                      className="bi bi-pencil text-warning fs-5"
+                      className="bi bi-x-circle text-danger fs-5 m-2"
                       style={{ cursor: "pointer" }}
-                      onClick={() => handleEdit(idx)}
-                      title="Edit User"
+                      onClick={() => handleStatusChange(event._id, false)}
+                      title="Reject"
                     ></i>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
-                  No users found
+                <td colSpan="7">
+                  {loading ? (
+                    <div
+                      className="spinner-border text-primary"
+                      role="status"
+                    ></div>
+                  ) : (
+                    "No events found"
+                  )}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Pagination */}
-      <nav aria-label="Page navigation">
-        <ul className="pagination justify-content-center">
-          <li
-            className={`page-item ${
-              pagination.current_page === 1 ? "disabled" : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => handlePageChange(pagination.current_page - 1)}
-            >
-              Previous
-            </button>
-          </li>
-
-          {Array.from({ length: pagination.total_page }, (_, i) => i + 1).map(
-            (page) => (
-              <li
-                key={page}
-                className={`page-item ${
-                  page === pagination.current_page ? "active" : ""
-                }`}
-              >
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </button>
-              </li>
-            )
-          )}
-
-          <li
-            className={`page-item ${
-              pagination.current_page === pagination.total_page
-                ? "disabled"
-                : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => handlePageChange(pagination.current_page + 1)}
-            >
-              Next
-            </button>
-          </li>
-        </ul>
-      </nav>
-
-      {/* Modal */}
-      {modalType && (
-        <div
-          className="modal show fade d-block"
-          tabIndex="-1"
-          role="dialog"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            role="document"
-          >
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  {modalType === "view" ? "👁️ View User" : "✏️ Edit User"}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleCloseModal}
-                ></button>
-              </div>
-              <div className="modal-body">
-                {modalType === "view" ? (
-                  <div className="row">
-                    <div className="col-md-4 text-center">
-                      <img
-                        src={
-                          formData.profile_image || images.placeholder
-                        }
-                        alt="profile"
-                        className="img-fluid rounded-circle mb-3"
-                        style={{
-                          width: "200px",
-                          height: "200px",
-                          objectFit: "cover",
-                        }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = images.placeholder;
-                        }}
-                      />
-                    </div>
-                    <div className="col-md-8">
-                      <p>
-                        <strong>Name:</strong> {formData.name}
-                      </p>
-                      <p>
-                        <strong>Email:</strong> {formData.email}
-                      </p>
-                      <p>
-                        <strong>Mobile:</strong> {formData.mobile}
-                      </p>
-                      <p>
-                        <strong>Gender:</strong> {formData.gender}
-                      </p>
-                      <p>
-                        <strong>Country:</strong> {formData.country}
-                      </p>
-                      <p>
-                        <strong>State:</strong> {formData.state}
-                      </p>
-                      <p>
-                        <strong>City:</strong> {formData.city}
-                      </p>
-                      <p>
-                        <strong>About Me:</strong> {formData.aboutMe}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <form>
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Name</label>
-                          <input
-                            type="text"
-                            name="name"
-                            className="form-control"
-                            value={formData.name}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="mb-3">
-                          <label className="form-label">Email</label>
-                          <input
-                            type="email"
-                            name="email"
-                            className="form-control"
-                            value={formData.email}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="mb-3">
-                          <label className="form-label">Mobile</label>
-                          <input
-                            type="text"
-                            name="mobile"
-                            className="form-control"
-                            value={formData.mobile}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="mb-3">
-                          <label className="form-label">Gender</label>
-                          <select
-                            name="gender"
-                            className="form-select"
-                            value={formData.gender}
-                            onChange={handleChange}
-                          >
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Country</label>
-                          <input
-                            type="text"
-                            name="country"
-                            className="form-control"
-                            value={formData.country}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="mb-3">
-                          <label className="form-label">State</label>
-                          <input
-                            type="text"
-                            name="state"
-                            className="form-control"
-                            value={formData.state}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="mb-3">
-                          <label className="form-label">City</label>
-                          <input
-                            type="text"
-                            name="city"
-                            className="form-control"
-                            value={formData.city}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Profile Image URL
-                          </label>
-                          <input
-                            type="text"
-                            name="profile_image"
-                            className="form-control"
-                            value={formData.profile_image}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">About Me</label>
-                      <textarea
-                        name="aboutMe"
-                        className="form-control"
-                        rows="3"
-                        value={formData.aboutMe}
-                        onChange={handleChange}
-                      ></textarea>
-                    </div>
-                  </form>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleCloseModal}
-                >
-                  Close
-                </button>
-                {modalType === "edit" && (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSave}
-                  >
-                    Save Changes
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </Table>
+    </>
   );
-}
+};
 
 export default Events;
