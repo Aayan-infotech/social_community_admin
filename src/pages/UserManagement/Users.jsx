@@ -315,7 +315,7 @@ const Users = () => {
           <tbody>
             {users.length > 0 ? (
               users.map((user, idx) => (
-                <tr key={user._id}>
+                <tr key={user.userId}>
                   <td className="d-flex align-items-center gap-2 justify-content-start">
                     <img
                       src={user.profile_image || images.placeholder}

@@ -9,11 +9,24 @@ function Table({
   searchTerm,
   handleSearch,
   clearSearch,
+  handleAdd,
   children,
 }) {
   return (
     <>
-      <h3 className="mb-4 fw-bold text-dark">{PageTitle}</h3>
+    <div className="d-flex justify-content-between align-items-center mb-4">
+      <h3 className="mb-0 fw-bold text-dark">{PageTitle}</h3>
+      {handleAdd && (
+        <button
+          className="btn btn-primary"
+          onClick={handleAdd}
+          title="Add new record"
+        >
+          <i className="bi bi-plus-lg"></i> Add New
+        </button>
+      )}
+    </div>
+
       <div className="row mb-4">
         <div className="col-md-6">
           <small className="text-muted">

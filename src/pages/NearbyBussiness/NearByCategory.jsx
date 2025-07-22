@@ -20,6 +20,7 @@ const NearByCategory = () => {
     category_name: "",
     category_image: "",
   });
+  const [disabled, setDisabled] = useState(false);
   const [pagination, setPagination] = useState({
     current_page: 1,
     total_page: 1,
@@ -158,6 +159,7 @@ const NearByCategory = () => {
 
   const handleSaveOrUpdate = async () => {
     try {
+      setDisabled(true);
       const payload = new FormData();
       Object.keys(formData).forEach((key) => {
         if (formData[key]) payload.append(key, formData[key]);
@@ -180,6 +182,8 @@ const NearByCategory = () => {
       }
     } catch (err) {
       toast.error("Error saving category");
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -330,6 +334,7 @@ const NearByCategory = () => {
                 <button
                   className="btn btn-primary"
                   onClick={handleSaveOrUpdate}
+                  disabled={disabled}
                 >
                   Save Changes
                 </button>
