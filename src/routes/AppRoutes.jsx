@@ -21,6 +21,7 @@ import BookedTickets from "../pages/user/Events/BookedTickets";
 import CancelledTickets from "../pages/user/Events/CancelledTickets";
 import KYCSuccessPage from "../pages/KYCSuccessPage";
 import ReportedPost from "../pages/ReportedPost/ReportedPost";
+import EventOrganizer from "../pages/Events/EventOrganizer";
 
 
 export default function AppRoutes() {
@@ -54,6 +55,7 @@ export default function AppRoutes() {
           <Route path="events" element={<Events />} />
           
           <Route path="reported-posts" element={<ReportedPost />} />
+          <Route path="all-event-organizers" element={<EventOrganizer />} />
         </Route>
       )}
 

@@ -1,194 +1,107 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../../components/Sidebar/Sidebar";
-import Topbar from "../../components/Topbar/Topbar";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import Button from "react-bootstrap/Button";
-import Swal from "sweetalert2";
 import images from "../../contstants/images";
+import { useDebounce } from "../../hook/useDebounce";
+import Swal from "sweetalert2";
+import Table from "../../components/Table";
+import Th from "../../components/Th";
 
-export default function SubcategoryPage() {
+const SubcategoryPage = () => {
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [formData, setFormData] = useState({
     subcategory_name: "",
     subcategory_image: "",
     category_id: "",
   });
-  const [modalType, setModalType] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [disabled, setDisabled] = useState(false);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_page: 1,
+    per_page: 10,
+    total_records: 0,
+  });
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    fetchSubcategories();
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig]);
 
   const fetchCategories = async () => {
     try {
-      setLoading(true);
       const response = await axios.get(`marketplace/get-category`);
-
       if (response.data.success) {
         setCategories(response.data.data || []);
-      } else {
-        toast.error("Failed to fetch categories");
       }
-    } catch (error) {
-      toast.error("Error fetching categories");
+    } catch (err) {
+      toast.error("Failed to fetch categories");
     }
   };
 
   const fetchSubcategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`marketplace/get-subcategories`);
-
-      if (response.data.success) {
-        setSubcategories(response.data.data || []);
-      } else {
-        toast.error(response.data.message || "Failed to fetch subcategories");
+      const params = new URLSearchParams({
+        page: pagination.current_page,
+        limit: pagination.per_page,
+      });
+      if (debouncedSearchTerm.trim())
+        params.append("search", debouncedSearchTerm);
+      if (sortConfig.key) {
+        params.append("sortBy", sortConfig.key);
+        params.append("sortOrder", sortConfig.direction);
       }
-    } catch (error) {
+      const response = await axios.get(
+        `marketplace/get-subcategories?${params}`
+      );
+      if (response.data.success) {
+        setSubcategories(response.data.data?.subcategories || []);
+        setPagination({
+          current_page: response.data.data?.current_page,
+          total_page: response.data.data?.total_page,
+          per_page: response.data.data?.per_page,
+          total_records: response.data.data?.total_records,
+        });
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (err) {
       toast.error("Failed to fetch subcategories");
-      setError(error.message || "An error occurred");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchCategories();
-    fetchSubcategories();
-  }, []);
-
-  const handleAddSubcategory = () => {
-    setModalType("add");
-    setFormData({
-      subcategory_name: "",
-      subcategory_image: "",
-      category_id: "",
-    });
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc")
+      direction = "desc";
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
   };
 
-  const handleCloseModal = () => {
-    setModalType(null);
-    setFormData({
-      subcategory_name: "",
-      subcategory_image: "",
-      category_id: "",
-    });
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
   };
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleSave = async () => {
-    try {
-      setLoading(true);
-
-      const payload = new FormData();
-      payload.append("subcategory_name", formData.subcategory_name);
-      payload.append("category_id", formData.category_id);
-      if (formData.subcategory_image instanceof File) {
-        payload.append("subcategory_image", formData.subcategory_image);
-      }
-
-      const response = await axios.post(
-        `marketplace/upsert-subcategory`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Subcategory added successfully");
-        handleCloseModal();
-        fetchSubcategories();
-      } else {
-        toast.error(response.data.message || "Failed to add subcategory");
-      }
-    } catch (error) {
-      toast.error("Failed to add subcategory");
-      setError(error.message || "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdate = async () => {
-    try {
-      const payload = new FormData();
-      payload.append("id", formData.id);
-      payload.append("subcategory_name", formData.subcategory_name);
-      payload.append("category_id", formData.category_id);
-      if (formData.subcategory_image instanceof File) {
-        payload.append("subcategory_image", formData.subcategory_image);
-      }
-
-      const response = await axios.post(
-        `marketplace/upsert-subcategory`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Subcategory updated successfully");
-        handleCloseModal();
-        fetchSubcategories();
-      } else {
-        toast.error(response.data.message || "Failed to update subcategory");
-      }
-    } catch (error) {
-      toast.error("Failed to update subcategory");
-      setError(error.message || "An error occurred");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This action is irreversible!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios
-          .delete(`marketplace/delete-subcategory/${id}`)
-          .then((response) => {
-            if (response.data.success) {
-              Swal.fire("Deleted!", "Subcategory deleted.", "success");
-              fetchSubcategories();
-            } else {
-              Swal.fire("Error!", response.data.message, "error");
-            }
-          })
-          .catch((err) =>
-            Swal.fire("Error!", err.message || "Deletion failed", "error")
-          );
-      }
-    });
-  };
-
-  const handleEdit = (index) => {
-    setModalType("edit");
-    const sub = subcategories[index];
-    setFormData({
-      id: sub._id,
-      subcategory_name: sub.subcategory_name,
-      subcategory_image: sub.subcategory_image,
-      category_id: sub.category_id,
-    });
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
   };
 
   const getCategoryName = (id) => {
@@ -196,88 +109,196 @@ export default function SubcategoryPage() {
     return cat?.category_name || "Unknown";
   };
 
-  if (loading) {
-    return (
-      <div className="p-4 text-center">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+  const handleAdd = () => {
+    setModalType("add");
+    setFormData({ subcategory_name: "", subcategory_image: "", category_id: "" });
+  };
+
+  const handleEdit = (index) => {
+    setSelectedIndex(index);
+    const sub = subcategories[index];
+    setFormData({
+      id: sub._id,
+      subcategory_name: sub.subcategory_name,
+      subcategory_image: sub.subcategory_image,
+      category_id: sub.category_id,
+    });
+    setModalType("edit");
+  };
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "subcategory_image") {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSaveOrUpdate = async () => {
+    try {
+      setDisabled(true);
+      const payload = new FormData();
+      Object.keys(formData).forEach((key) => {
+        if (formData[key]) payload.append(key, formData[key]);
+      });
+      const response = await axios.post(
+        `marketplace/upsert-subcategory`,
+        payload,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      if (response.data.success) {
+        toast.success(
+          `Subcategory ${modalType === "edit" ? "updated" : "added"} successfully`
+        );
+        handleCloseModal();
+        fetchSubcategories();
+      } else {
+        toast.error(response.data.message || "Operation failed");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Error saving subcategory");
+    } finally {
+      setDisabled(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await axios.delete(
+            `marketplace/delete-subcategory/${id}`
+          );
+          if (res.data.success) {
+            toast.success("Deleted successfully");
+            fetchSubcategories();
+          } else {
+            toast.error(res.data.message);
+          }
+        } catch (err) {
+          toast.error("Error deleting subcategory");
+        }
+      }
+    });
+  };
+
+  const handleCloseModal = () => {
+    setFormData({ subcategory_name: "", subcategory_image: "", category_id: "" });
+    setModalType(null);
+    setSelectedIndex(null);
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return (
+        <div className="d-flex flex-column align-items-center" style={{ fontSize: "10px" }}>
+          <i className="bi bi-caret-up-fill text-secondary" style={{ marginBottom: "-8px" }}></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
         </div>
+      );
+    }
+    if (sortConfig.direction === "asc") {
+      return (
+        <div className="d-flex flex-column align-items-center" style={{ fontSize: "10px" }}>
+          <i className="bi bi-caret-up-fill text-white" style={{ marginBottom: "-8px" }}></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    return (
+      <div className="d-flex flex-column align-items-center" style={{ fontSize: "10px" }}>
+        <i className="bi bi-caret-up-fill text-secondary" style={{ marginBottom: "-8px" }}></i>
+        <i className="bi bi-caret-down-fill text-white"></i>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="fw-bold text-dark">Marketplace Subcategories</h3>
-        <Button onClick={handleAddSubcategory} variant="primary">
-          Add Subcategory
-        </Button>
-      </div>
-
-      <div className="table-responsive">
+    <>
+      <Table
+        PageTitle="📂 Subcategories"
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={subcategories.length || 0}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+        handleAdd={handleAdd}
+      >
         <table className="table table-bordered align-middle text-center table-striped">
           <thead className="table-dark">
             <tr>
-              <th>Icon</th>
-              <th>Subcategory Name</th>
-              <th>Category</th>
-              <th>Actions</th>
+              <Th children="Icon" />
+              <Th
+                children="Subcategory Name"
+                sortIcon={getSortIcon("subcategory_name")}
+                onClick={() => handleSort("subcategory_name")}
+              />
+              <Th children="Parent Category" 
+                sortIcon={getSortIcon("category.category_name")}
+                onClick={() => handleSort("category.category_name")}
+              />
+              <Th children="Actions" />
             </tr>
           </thead>
           <tbody>
-            {subcategories.map((sub, idx) => (
-              <tr key={sub._id}>
-                <td>
-                  <img
-                    src={sub.subcategory_image || images.placeholder}
-                    alt="icon"
-                    width="40"
-                    height="40"
-                    className="rounded-circle"
-                  />
-                </td>
-                <td>{sub.subcategory_name}</td>
-                <td>{getCategoryName(sub.category_id)}</td>
-                <td>
-                  <i
-                    className="bi bi-pencil text-warning fs-5"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleEdit(idx)}
-                  ></i>
-                  <i
-                    className="bi bi-trash text-danger fs-5 m-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleDelete(sub._id)}
-                  ></i>
-                </td>
+            {subcategories.length > 0 ? (
+              subcategories.map((sub, idx) => (
+                <tr key={sub._id}>
+                  <td>
+                    <img
+                      src={sub.subcategory_image || images.placeholder}
+                      alt="icon"
+                      className="rounded-circle"
+                      width="40"
+                      height="40"
+                      onError={(e) => (e.target.src = images.placeholder)}
+                    />
+                  </td>
+                  <td>{sub.subcategory_name}</td>
+                  <td>{getCategoryName(sub.category_id)}</td>
+                  <td>
+                    <i
+                      className="bi bi-pencil text-warning fs-5 me-3"
+                      title="Edit"
+                      onClick={() => handleEdit(idx)}
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                    <i
+                      className="bi bi-trash text-danger fs-5"
+                      title="Delete"
+                      onClick={() => handleDelete(sub._id)}
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4">No subcategories found</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
-      </div>
+      </Table>
 
       {modalType && (
-        <div
-          className="modal show fade d-block"
-          tabIndex="-1"
-          role="dialog"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            role="document"
-          >
+        <div className="modal show fade d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {modalType === "add" ? "Add Subcategory" : "Edit Subcategory"}
+                  {modalType === "add" ? "➕ Add Subcategory" : "✏️ Edit Subcategory"}
                 </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleCloseModal}
-                ></button>
+                <button type="button" className="btn-close" onClick={handleCloseModal}></button>
               </div>
               <div className="modal-body">
                 <form encType="multipart/form-data">
@@ -314,37 +335,27 @@ export default function SubcategoryPage() {
                       name="subcategory_image"
                       className="form-control"
                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            subcategory_image: file,
-                          }));
-                        }
-                      }}
+                      onChange={handleChange}
                     />
                   </div>
                 </form>
               </div>
               <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleCloseModal}
-                >
-                  Close
-                </button>
+                <button className="btn btn-secondary" onClick={handleCloseModal}>Close</button>
                 <button
                   className="btn btn-primary"
-                  onClick={modalType === "add" ? handleSave : handleUpdate}
+                  onClick={handleSaveOrUpdate}
+                  disabled={disabled}
                 >
-                  {modalType === "add" ? "Save" : "Update"}
+                  Save Changes
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
-}
+};
+
+export default SubcategoryPage;

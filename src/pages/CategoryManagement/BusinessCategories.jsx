@@ -1,267 +1,280 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../../components/Sidebar/Sidebar";
-import Topbar from "../../components/Topbar/Topbar";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import Button from "react-bootstrap/Button";
-import Swal from "sweetalert2";
 import images from "../../contstants/images";
+import { useDebounce } from "../../hook/useDebounce";
+import Swal from "sweetalert2";
+import Table from "../../components/Table";
+import Th from "../../components/Th";
 
-export default function Page() {
+const MarketplaceCategory = () => {
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [formData, setFormData] = useState({
     category_name: "",
     category_image: "",
   });
-  const [modalType, setModalType] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [disabled, setDisabled] = useState(false);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_page: 1,
+    per_page: 10,
+    total_records: 0,
+  });
 
-  const handleAddCategory = () => {
-    setModalType("add");
-    setFormData({
-      category_name: "",
-      category_image: "",
-    });
-  };
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
 
-  const handleCloseModal = () => {
-    setModalType(null);
-    setFormData({
-      category_name: "",
-      category_image: "",
-    });
-  };
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  useEffect(() => {
+    fetchCategories();
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig]);
 
-  const handleSave = async () => {
+  const fetchCategories = async () => {
     try {
       setLoading(true);
-
-      const response = await axios.post(
-        `marketplace/upsert-category`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Category added successfully");
-        setModalType(null);
-        setFormData({
-          category_name: "",
-          category_image: "",
-        });
-        fetchCategories();
-      } else {
-        toast.error(response.data.message || "Failed to add category");
+      const params = new URLSearchParams({
+        page: pagination.current_page,
+        limit: pagination.per_page,
+      });
+      if (debouncedSearchTerm.trim())
+        params.append("search", debouncedSearchTerm);
+      if (sortConfig.key) {
+        params.append("sortBy", sortConfig.key);
+        params.append("sortOrder", sortConfig.direction);
       }
-    } catch (error) {
-      toast.error("Failed to add category");
-      setError(error.message || "An error occurred");
+      const response = await axios.get(
+        `marketplace/get-all-category?${params}`
+      );
+      console.log(response.data);
+      if (response.data.success) {
+        setCategories(response?.data?.data?.categories || []);
+        setPagination({
+          current_page: response?.data?.data?.current_page,
+          total_page: response?.data?.data?.total_page,
+          per_page: response?.data?.data?.per_page,
+          total_records: response?.data?.data?.total_records,
+        });
+      } else {
+        toast.error(response?.data?.message || "Failed to fetch categories");
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error("Failed to fetch categories");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc")
+      direction = "desc";
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return (
+        <div className="d-flex flex-column align-items-center" style={{ fontSize: "10px" }}>
+          <i className="bi bi-caret-up-fill text-secondary" style={{ marginBottom: "-8px" }}></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    if (sortConfig.direction === "asc") {
+      return (
+        <div className="d-flex flex-column align-items-center" style={{ fontSize: "10px" }}>
+          <i className="bi bi-caret-up-fill text-white" style={{ marginBottom: "-8px" }}></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    return (
+      <div className="d-flex flex-column align-items-center" style={{ fontSize: "10px" }}>
+        <i className="bi bi-caret-up-fill text-secondary" style={{ marginBottom: "-8px" }}></i>
+        <i className="bi bi-caret-down-fill text-white"></i>
+      </div>
+    );
+  };
+
+  const handleAdd = () => {
+    setModalType("add");
+    setFormData({ category_name: "", category_image: "" });
+  };
+
+  const handleEdit = (index) => {
+    setSelectedIndex(index);
+    setFormData({
+      id: categories[index]._id,
+      category_name: categories[index].category_name,
+      category_image: categories[index].category_image,
+    });
+    setModalType("edit");
+  };
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "category_image") {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSaveOrUpdate = async () => {
+    try {
+      setDisabled(true);
+      const payload = new FormData();
+      Object.keys(formData).forEach((key) => {
+        if (formData[key]) payload.append(key, formData[key]);
+      });
+      const response = await axios.post(
+        `marketplace/upsert-category`,
+        payload,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      if (response.data.success) {
+        toast.success(
+          `Category ${modalType === "edit" ? "updated" : "added"} successfully`
+        );
+        handleCloseModal();
+        fetchCategories();
+      } else {
+        toast.error(response.data.message || "Operation failed");
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Error saving category");
+      // toast.error("Error saving category");
+    } finally {
+      setDisabled(false);
     }
   };
 
   const handleDelete = async (id) => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        axios
-          .delete(`marketplace/delete-marketplace-category/${id}`)
-          .then((response) => {
-            if (response.data.success) {
-              Swal.fire({
-                title: "Deleted!",
-                text: "Category has been deleted.",
-                icon: "success",
-              });
-              fetchCategories();
-            } else {
-              Swal.fire({
-                title: "Error!",
-                text: response.data.message || "Failed to delete category",
-                icon: "error",
-              });
-            }
-          })
-          .catch((error) => {
-            Swal.fire({
-              title: "Error!",
-              text: error.message || "Failed to delete category",
-              icon: "error",
-            });
-          });
-      }
-    });
-  };
-
-  const handleUpdate = async () => {
-    try {
-      const response = await axios.post(
-        `marketplace/upsert-category`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        try {
+          const res = await axios.delete(
+            `marketplace/delete-marketplace-category/${id}`
+          );
+          if (res.data.success) {
+            toast.success("Deleted successfully");
+            fetchCategories();
+          } else {
+            toast.error(res.data.message);
+          }
+        } catch (err) {
+          toast.error("Error deleting category");
         }
-      );
-
-      if (response.data.success) {
-        toast.success("Category updated successfully");
-        setModalType(null);
-        setFormData({
-          category_name: "",
-          category_image: "",
-        });
-        fetchCategories();
-      } else {
-        toast.error(response.data.message || "Failed to update category");
       }
-    } catch (error) {
-      toast.error("Failed to update category");
-      setError(error.message || "An error occurred");
-    }
-  };
-
-  const handleEdit = (index) => {
-    setModalType("edit");
-    setFormData({
-      id: categories[index]._id,
-      category_name: categories[index].category_name,
-      category_image: categories[index].category_image,
     });
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      setLoading(true);
-
-      const response = await axios.get(`marketplace/get-category`);
-
-      if (response.data.success) {
-        setCategories(response.data.data || []);
-      } else {
-        toast.error(response.data.message || "Failed to fetch categories");
-      }
-    } catch (error) {
-      toast.error("Failed to fetch categories");
-      setError(error.message || "An error occurred");
-    } finally {
-      setLoading(false);
-    }
+  const handleCloseModal = () => {
+    setFormData({ category_name: "", category_image: "" });
+    setModalType(null);
+    setSelectedIndex(null);
   };
 
-  if (loading) {
-    return (
-      <div className="p-4 text-center">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="p-4 text-center text-danger">Error: {error}</div>;
-  }
   return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="fw-bold text-dark">MarketPlace Categories</h3>
-        <Button
-          title="Add Category"
-          onClick={handleAddCategory}
-          variant="primary"
-        >
-          Add Category
-        </Button>
-      </div>
-
-      <div className="table-responsive">
+    <>
+      <Table
+        PageTitle="🛒 Marketplace Categories"
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={categories.length || 0}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+        handleAdd={handleAdd}
+      >
         <table className="table table-bordered align-middle text-center table-striped">
           <thead className="table-dark">
             <tr>
-              <th>Category Icon</th>
-              <th>Category Name</th>
-              <th>Actions</th>
+              <Th children="Category Icon" />
+              <Th
+                children="Category Name"
+                sortIcon={getSortIcon("category_name")}
+                onClick={() => handleSort("category_name")}
+              />
+              <Th children="Actions" />
             </tr>
           </thead>
           <tbody>
-            {categories.map((category, idx) => (
-              <tr key={category._id}>
-                <td className="d-flex align-items-center gap-2 justify-content-start">
-                  <img
-                    src={category.category_image || images.placeholder}
-                    alt="avatar"
-                    className="rounded-circle"
-                    width="40"
-                    height="40"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = images.placeholder;
-                    }}
-                  />
-                </td>
-                <td>{category.category_name}</td>
-                <td>
-                  <i
-                    className="bi bi-pencil text-warning fs-5"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleEdit(idx)}
-                    data-bs-toggle="modal"
-                    title="Edit User"
-                  ></i>
-                  <i
-                    className="bi bi-trash text-danger fs-5 m-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleDelete(category._id)}
-                  ></i>
-                </td>
+            {categories.length > 0 ? (
+              categories.map((category, idx) => (
+                <tr key={category._id}>
+                  <td>
+                    <img
+                      src={category.category_image || images.placeholder}
+                      alt="icon"
+                      className="rounded-circle"
+                      width="40"
+                      height="40"
+                      onError={(e) => (e.target.src = images.placeholder)}
+                    />
+                  </td>
+                  <td>{category.category_name}</td>
+                  <td>
+                    <i
+                      className="bi bi-pencil text-warning fs-5 me-3"
+                      title="Edit"
+                      onClick={() => handleEdit(idx)}
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                    <i
+                      className="bi bi-trash text-danger fs-5"
+                      title="Delete"
+                      onClick={() => handleDelete(category._id)}
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="3">No categories found</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
-      </div>
+      </Table>
 
-      {/* Modal */}
       {modalType && (
         <div
           className="modal show fade d-block"
           tabIndex="-1"
-          role="dialog"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            role="document"
-          >
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {modalType === "add" ? "Add Category" : "✏️ Edit Category"}
+                  {modalType === "add" ? "➕ Add Category" : "✏️ Edit Category"}
                 </h5>
                 <button
                   type="button"
@@ -270,101 +283,50 @@ export default function Page() {
                 ></button>
               </div>
               <div className="modal-body">
-                {modalType === "add" ? (
-                  <form encType="multipart/form-data">
-                    <div className="mb-3">
-                      <label className="form-label">Category Name</label>
-                      <input
-                        type="text"
-                        name="category_name"
-                        className="form-control"
-                        value={formData.category_name}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Category Image</label>
-                      <input
-                        type="file"
-                        name="category_image"
-                        className="form-control"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category_image: file,
-                            }));
-                          }
-                        }}
-                      />
-                    </div>
-                  </form>
-                ) : (
-                  <form encType="multipart/form-data">
-                    <div className="mb-3">
-                      <input type="hidden" name="id" value={formData._id} />
-                      <label className="form-label">Category Name</label>
-                      <input
-                        type="text"
-                        name="category_name"
-                        className="form-control"
-                        value={formData.category_name}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Category Image</label>
-                      <input
-                        type="file"
-                        name="category_image"
-                        className="form-control"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category_image: file,
-                            }));
-                          }
-                        }}
-                      />
-                    </div>
-                  </form>
-                )}
+                <form encType="multipart/form-data">
+                  <div className="mb-3">
+                    <label className="form-label">Category Name</label>
+                    <input
+                      type="text"
+                      name="category_name"
+                      className="form-control"
+                      value={formData.category_name}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Category Image</label>
+                    <input
+                      type="file"
+                      name="category_image"
+                      className="form-control"
+                      accept="image/*"
+                      onChange={handleChange}
+                    />
+                  </div>
+                </form>
               </div>
               <div className="modal-footer">
                 <button
-                  type="button"
                   className="btn btn-secondary"
                   onClick={handleCloseModal}
                 >
                   Close
                 </button>
-                {modalType === "add" ? (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSave}
-                  >
-                    Save changes
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleUpdate}
-                  >
-                    Update changes
-                  </button>
-                )}
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSaveOrUpdate}
+                  disabled={disabled}
+                >
+                  Save Changes
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
-}
+};
+
+export default MarketplaceCategory;

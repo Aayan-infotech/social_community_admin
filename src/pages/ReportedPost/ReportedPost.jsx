@@ -306,7 +306,8 @@ const ReportedPost = () => {
             </tr>
           </thead>
           <tbody>
-            {posts.length > 0 ? (
+            {console.log("Posts:", posts)}
+            {posts?.length > 0 ? (
               posts.map((post, idx) => (
                 <tr key={post._id}>
                   <td className="">

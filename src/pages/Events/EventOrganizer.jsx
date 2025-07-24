@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./Users.css";
+import "../UserManagement/Users.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 import Th from "../../components/Th";
 import Table from "../../components/Table";
 
-const Users = () => {
+const EventOrganizer = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,10 +63,11 @@ const Users = () => {
       }
 
       const response = await axios.get(
-        `users/get-all-users?${params.toString()}`
+        `users/get-all-event-organizers?${params.toString()}`
       );
+      console.log(response.data);
 
-      setUsers(response.data.data.users);
+      setUsers(response.data.data.eventOrganizers);
       setPagination({
         current_page: response.data.data.current_page,
         total_page: response.data.data.total_page,
@@ -275,7 +276,7 @@ const Users = () => {
   return (
     <>
       <Table
-        PageTitle="👥 User Management"
+        PageTitle="👥 Event Organizers"
         pagination={pagination}
         setPagination={setPagination}
         dataLength={users?.length || 0}
@@ -311,8 +312,8 @@ const Users = () => {
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 ? (
-              users.map((user, idx) => (
+            {users?.length > 0 ? (
+              users?.map((user, idx) => (
                 <tr key={user.userId}>
                   <td className="d-flex align-items-center gap-2 justify-content-start">
                     <img
@@ -585,4 +586,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default EventOrganizer;

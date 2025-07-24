@@ -50,7 +50,7 @@ export default function Sidebar() {
     }
 
     // Event Management
-    if (["/admin/events", "/admin/create-event"].includes(currentPath)) {
+    if (["/admin/events", "/admin/all-event-organizers"].includes(currentPath)) {
       setOpenEventManagement(true);
     }
 
@@ -66,7 +66,7 @@ export default function Sidebar() {
     <>
       {/* Toggle button for mobile */}
       <button
-        className="sidebar-toggle d-md-none"
+        className="sidebar-toggle "
         onClick={() => setIsOpen(!isOpen)}
       >
         <i className={`bi ${isOpen ? "bi-x" : "bi-list"}`}></i>
@@ -266,7 +266,7 @@ export default function Sidebar() {
             <li className="sidebar-item">
               <div
                 className={`sidebar-link ${
-                  isActiveParent(["/admin/events", "/admin/create-event"])
+                  isActiveParent(["/admin/events", "/admin/all-event-organizers"])
                     ? "active"
                     : ""
                 }`}
@@ -283,6 +283,15 @@ export default function Sidebar() {
               </div>
               {openEventManagement && (
                 <ul className="sidebar-submenu">
+                   <li>
+                    <Link to="/admin/all-event-organizers"
+                      className={`sidebar-sublink ${
+                        isActiveLink("/admin/all-event-organizers") ? "active" : ""
+                      }`}
+                    >
+                      All Event Organizers
+                    </Link>
+                  </li>
                   <li>
                     <Link
                       to="/admin/events"
@@ -293,6 +302,7 @@ export default function Sidebar() {
                       All Events
                     </Link>
                   </li>
+                 
                 </ul>
               )}
             </li>

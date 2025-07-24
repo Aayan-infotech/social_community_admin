@@ -177,7 +177,7 @@ const Events = () => {
         handleSearch={handleSearch}
         clearSearch={clearSearch}
       >
-        <table className="table table-bordered align-middle text-center table-striped">
+        <table className="table table-bordered align-middle text-center table-striped text-nowrap">
           <thead className="table-dark">
             <tr>
               <Th
