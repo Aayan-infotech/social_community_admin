@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 import Th from "../../components/Th";
 import Table from "../../components/Table";
 
-const EventOrganizer = () => {
+const Vendors = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,11 +63,10 @@ const EventOrganizer = () => {
       }
 
       const response = await axios.get(
-        `users/get-all-event-organizers?${params.toString()}`
+        `users/get-all-vendors?${params.toString()}`
       );
 
-
-      setUsers(response.data.data.eventOrganizers);
+      setUsers(response.data.data.vendors);
       setPagination({
         current_page: response.data.data.current_page,
         total_page: response.data.data.total_page,
@@ -276,7 +275,7 @@ const EventOrganizer = () => {
   return (
     <>
       <Table
-        PageTitle="👥 Event Organizers"
+        PageTitle="👥 Vendor"
         pagination={pagination}
         setPagination={setPagination}
         dataLength={users?.length || 0}
@@ -586,4 +585,4 @@ const EventOrganizer = () => {
   );
 };
 
-export default EventOrganizer;
+export default Vendors;

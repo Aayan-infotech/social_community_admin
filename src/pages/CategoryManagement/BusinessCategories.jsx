@@ -50,7 +50,7 @@ const MarketplaceCategory = () => {
       const response = await axios.get(
         `marketplace/get-all-category?${params}`
       );
-      console.log(response.data);
+
       if (response.data.success) {
         setCategories(response?.data?.data?.categories || []);
         setPagination({

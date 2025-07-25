@@ -22,6 +22,9 @@ import CancelledTickets from "../pages/user/Events/CancelledTickets";
 import KYCSuccessPage from "../pages/KYCSuccessPage";
 import ReportedPost from "../pages/ReportedPost/ReportedPost";
 import EventOrganizer from "../pages/Events/EventOrganizer";
+import HealthWellness from "../pages/NearbyBussiness/HealthWellness";
+import Vendors from "../pages/CategoryManagement/Vendors";
+import AllProducts from "../pages/CategoryManagement/AllProducts";
 
 
 export default function AppRoutes() {
@@ -45,8 +48,12 @@ export default function AppRoutes() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<Users />} />
           <Route path="deleteUser" element={<DeleteUser />} />
+
           <Route path="categories" element={<BusinessCategories />} />
           <Route path="subcategories" element={<BusinessSubCategories />} />
+          <Route path="vendors" element={<Vendors />} />
+          <Route path="all-products" element={<AllProducts />} />
+
           <Route path="nearby-categories" element={<NearByCategory />} />
           <Route path="all-businesses" element={<BusinessList />} />
           <Route path="pages" element={<InfoPages />} />
@@ -56,6 +63,8 @@ export default function AppRoutes() {
           
           <Route path="reported-posts" element={<ReportedPost />} />
           <Route path="all-event-organizers" element={<EventOrganizer />} />
+          <Route path="health-wellness" element={<HealthWellness />} />
+          
         </Route>
       )}
 
