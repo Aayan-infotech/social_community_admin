@@ -15,12 +15,12 @@ export default function KYCSuccessPage() {
             <div className="success-description">
               You can now access all the features of the platform.
             </div>
-            <button
+            {/* <button
               className="success-button btn btn-primary text-center w-100 mb-3"
               onClick={() => (window.location.href = "/")}
             >
               Go Back
-            </button>
+            </button> */}
             <div className="order-footer">You can close this page!</div>
           </div>
           <div className="jagged-edge" />
