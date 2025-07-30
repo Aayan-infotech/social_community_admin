@@ -11,9 +11,15 @@ import {
   updateEvent,
 } from "../../../service/event/event";
 import { toast } from "react-toastify";
+import { CapitalizeFirstLetter } from "../../../service/helper";
+import axios from "axios";
 
 function Event({ type }) {
-  const [userSelectedEvent, setUserSelectedEvent] = useState(null);
+  const [managerName, setManagerName] = useState("");
+  const [managerEmail, setManagerEmail] = useState("");
+  const [disabled, setDisabled] = useState(false);
+  const [showAddManagerForm, setShowAddManagerForm] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [formData, setFormData] = useState({
     _id: "",
@@ -29,7 +35,7 @@ function Event({ type }) {
   });
 
   const handleView = (index) => {
-    setUserSelectedEvent(eventsData?.data[index]);
+    setSelectedEvent(eventsData?.data[index]);
     setFormData({
       eventName: eventsData?.data[index]?.eventName || "",
       eventLocation: eventsData?.data[index]?.eventLocation || "",
@@ -45,7 +51,7 @@ function Event({ type }) {
   };
 
   const handleEdit = (index) => {
-    setUserSelectedEvent(eventsData?.data[index]);
+    setSelectedEvent(eventsData?.data[index]);
     setFormData({
       eventName: eventsData?.data[index]?.eventName || "",
       eventLocation: eventsData?.data[index]?.eventLocation || "",
@@ -63,7 +69,7 @@ function Event({ type }) {
   };
 
   const handleCloseModal = () => {
-    setUserSelectedEvent(null);
+    setSelectedEvent(null);
     setFormData({
       _id: "",
       eventName: "",
@@ -101,7 +107,7 @@ function Event({ type }) {
     try {
       const updatedEvent = await updateEvent(
         userState?.userInfo?.accessToken,
-        userSelectedEvent?._id,
+        selectedEvent?._id,
         formData
       );
       toast.success("Event updated successfully");
@@ -123,6 +129,54 @@ function Event({ type }) {
       const errorMessage =
         error.response?.data?.message || "Failed to update event";
       toast.error(errorMessage);
+    }
+  };
+
+  const handleAddManager = async (e) => {
+    e.preventDefault();
+    if (!managerName) {
+      toast.error("Manager name is required");
+      return;
+    }
+    if (!managerEmail) {
+      toast.error("Manager email is required");
+      return;
+    }
+    setDisabled(true);
+    try {
+      const response = await axios.post(`virtual-events/registration`, {
+        eventId: selectedEvent._id,
+        name: managerName,
+        email: managerEmail,
+      });
+      if (response?.data?.success) {
+        console.log(response.data);
+        setDisabled(false);
+        toast.success("Event manager added successfully");
+        setShowAddManagerForm(false);
+        setManagerName("");
+        setManagerEmail("");
+        setSelectedEvent((prev) => ({
+          ...prev,
+          eventManager: [
+            ...prev.eventManager,
+            {
+              name: managerName,
+              email: managerEmail,
+              username: response?.data?.data?.username,
+              password: response?.data?.data?.password,
+            },
+          ],
+        }));
+      } else {
+        toast.error(response?.data?.message || "Failed to add event manager");
+      }
+    } catch (error) {
+      console.log(error);
+      setDisabled(false);
+      toast.error(
+        error?.response?.data?.message || "Failed to add event manager"
+      );
     }
   };
 
@@ -212,17 +266,13 @@ function Event({ type }) {
                 </p>
               </td>
               <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                {(() => {
-                  const currentDate = new Date();
-                  const eventEndDateTime = combineDateAndTime(event?.eventEndDate, event?.eventTimeEnd);
-                  if (currentDate > eventEndDateTime) {
-                    return <span className="badge text-bg-danger">Ended</span>;
-                  } else {
-                    return (
-                      <span className="badge text-bg-success">Ongoing</span>
-                    );
-                  }
-                })()}
+                {event.status === "approved" ? (
+                  <span className="badge bg-success">Approved</span>
+                ) : event.status === "rejected" ? (
+                  <span className="badge bg-danger">Rejected</span>
+                ) : (
+                  <span className="badge bg-warning">Pending</span>
+                )}
               </td>
               <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
                 <i
@@ -273,67 +323,196 @@ function Event({ type }) {
               </div>
               <div className="modal-body">
                 {modalType === "view" ? (
-                  <div className="row">
-                    <div className="col-md-6">
-                      <p>
-                        <strong>Event Name:</strong>{" "}
-                        {userSelectedEvent?.eventName}
-                      </p>
-                      <p>
-                        <strong>Event Location:</strong>{" "}
-                        {userSelectedEvent?.eventLocation}
-                      </p>
-                      <p>
-                        <strong>Event Start Date:</strong>{" "}
-                        {new Date(
-                          userSelectedEvent?.eventStartDate
-                        ).toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}{" "}
-                        - {formatTime(userSelectedEvent?.eventTimeStart)}
-                      </p>
-                      <p>
-                        <strong>Event End Date:</strong>{" "}
-                        {new Date(
-                          userSelectedEvent?.eventEndDate
-                        ).toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}{" "}
-                        - {formatTime(userSelectedEvent?.eventTimeEnd)}
-                      </p>
-
-                      <p>
-                        <strong>Event Status:</strong>{" "}
-                        {new Date(userSelectedEvent?.eventEndDate) <
-                        new Date() ? (
-                          <span className="badge text-bg-danger">Ended</span>
-                        ) : (
-                          <span className="badge text-bg-success">Ongoing</span>
-                        )}
-                      </p>
-                      <p>
-                        <strong>Ticket Price:</strong>{" "}
-                        {userSelectedEvent?.ticketPrice}
-                      </p>
-                      <p>
-                        <strong>Event Description:</strong>{" "}
-                        {userSelectedEvent?.eventDescription}
-                      </p>
+                  <div className="container-fluid">
+                    {/* Ticket Header */}
+                    <div className="row mb-4">
+                      <div className="col-12">
+                        <div className="card border-0 bg-light">
+                          <div className="card-body text-center">
+                            <h4 className="card-title text-primary mb-1">
+                              {CapitalizeFirstLetter(selectedEvent?.eventName)}
+                            </h4>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="col-md-6">
-                      <div className="d-flex justify-content-center align-items-center h-100">
-                        <img
-                          src={
-                            userSelectedEvent?.eventImage ||
-                            images.defaultEventImage
-                          }
-                          alt="Event"
-                          className="img-fluid rounded"
-                        />
+
+                    {/* Event Information */}
+                    <div className="row mb-4">
+                      <div className="col-12">
+                        <h6 className="text-uppercase text-muted mb-3">
+                          📅 Event Information
+                        </h6>
+                        <div className="card">
+                          <div className="card-body">
+                            <div className="row">
+                              {selectedEvent?.eventImage && (
+                                <div className="col-md-4 mb-3">
+                                  <img
+                                    src={selectedEvent?.eventImage}
+                                    alt="Event"
+                                    className="img-fluid rounded"
+                                    style={{
+                                      maxHeight: "150px",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              <div className="col-md-8">
+                                <h5 className="text-primary mb-2">
+                                  {CapitalizeFirstLetter(
+                                    selectedEvent?.eventName
+                                  )}
+                                </h5>
+                                <p className="mb-2">
+                                  <i className="bi bi-pin-map-fill text-danger me-2"></i>
+                                  <strong>Location:</strong>{" "}
+                                  {CapitalizeFirstLetter(
+                                    selectedEvent?.eventLocation
+                                  )}
+                                </p>
+                                <p className="mb-2">
+                                  <i className="bi bi-calendar-event text-success me-2"></i>
+                                  <strong>Start:</strong>{" "}
+                                  {dateTimeFormat(
+                                    selectedEvent?.eventStartDate,
+                                    selectedEvent?.eventTimeStart
+                                  )}
+                                </p>
+                                <p className="mb-0">
+                                  <i className="bi bi-calendar-check text-warning me-2"></i>
+                                  <strong>End:</strong>{" "}
+                                  {dateTimeFormat(
+                                    selectedEvent?.eventEndDate,
+                                    selectedEvent?.eventTimeEnd
+                                  )}
+                                </p>
+                                <p className="mb-0">
+                                  <i className="bi bi-card-text text-info me-2"></i>
+                                  <strong>Description:</strong>{" "}
+                                  {CapitalizeFirstLetter(
+                                    selectedEvent?.eventDescription
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-12">
+                        <div className="card bg-light">
+                          <div className="card-body">
+                            {/* Heading and Add Button */}
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <h6 className="text-uppercase text-muted mb-0">
+                                🎟️ Event Managers
+                              </h6>
+                              {selectedEvent?.status === "approved" && (
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() =>
+                                    setShowAddManagerForm((prev) => !prev)
+                                  }
+                                >
+                                  {showAddManagerForm
+                                    ? "Cancel"
+                                    : "Add Manager"}
+                                </button>
+                              )}
+                            </div>
+
+                            {showAddManagerForm && (
+                              <form
+                                className="row row-cols-lg-2 align-items-center mb-2"
+                                onSubmit={handleAddManager}
+                              >
+                                <div className="col-12">
+                                  <label
+                                    className="visually-hidden"
+                                    htmlFor="inlineFormInputGroupName"
+                                  >
+                                    Name
+                                  </label>
+                                  <div className="input-group">
+                                    <input
+                                      type="text"
+                                      className="form-control"
+                                      id="inlineFormInputGroupName"
+                                      placeholder="Name"
+                                      value={managerName}
+                                      onChange={(e) =>
+                                        setManagerName(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-12">
+                                  <label
+                                    className="visually-hidden"
+                                    htmlFor="inlineFormInputGroupEmail"
+                                  >
+                                    Email
+                                  </label>
+                                  <div className="input-group">
+                                    <input
+                                      type="email"
+                                      className="form-control"
+                                      id="inlineFormInputGroupEmail"
+                                      placeholder="Email"
+                                      value={managerEmail}
+                                      onChange={(e) =>
+                                        setManagerEmail(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-12 mt-2">
+                                  <button
+                                    disabled={disabled}
+                                    type="submit"
+                                    className="btn btn-primary btn-sm"
+                                  >
+                                    Submit
+                                  </button>
+                                </div>
+                              </form>
+                            )}
+                            <table className="table table-bordered table-striped">
+                              <thead className="table-dark">
+                                <tr>
+                                  <th>Manager Name</th>
+                                  <th>Email</th>
+                                  <th>UserName</th>
+                                  <th>Password</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {selectedEvent?.eventManager?.length > 0 ? (
+                                  selectedEvent.eventManager.map(
+                                    (manager, idx) => (
+                                      <tr key={idx}>
+                                        <td>{manager.name}</td>
+                                        <td>{manager.email}</td>
+                                        <td>{manager.username}</td>
+                                        <td>{manager.password}</td>
+                                      </tr>
+                                    )
+                                  )
+                                ) : (
+                                  <tr>
+                                    <td colSpan="4">No managers assigned</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -194,8 +194,28 @@ const Vendors = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
+
+    if (name === "profile_image" && files.length > 0) {
+      const file = files[0];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "application/pdf",
+        "video/mp4",
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("File type not allowed. Allowed: JPG, PNG, GIF, PDF, MP4");
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, [name]: file }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleBlock = async (index, type) => {
@@ -240,21 +260,51 @@ const Vendors = () => {
   };
 
   const handleSave = async () => {
+    setDisabled(true);
     try {
-      const userId = users[selectedUserIndex].userId;
-      await axios.put(`users/update-user/${userId}`, formData);
+      const userId = users[selectedUserIndex]?.userId;
+
+      if (!userId) {
+        toast.error("User ID is missing.");
+        return;
+      }
+
+      const form = new FormData();
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) {
+          form.append(key, value);
+        }
+      });
+
+      const response = await axios.put(`users/update-user/${userId}`, form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       const updatedUsers = [...users];
       updatedUsers[selectedUserIndex] = {
         ...updatedUsers[selectedUserIndex],
         ...formData,
+        profile_image:
+          typeof formData.profile_image === "object"
+            ? URL.createObjectURL(formData.profile_image)
+            : formData.profile_image,
       };
-      setUsers(updatedUsers);
 
+      setUsers(updatedUsers);
       handleCloseModal();
       toast.success("User updated successfully!");
+      setDisabled(false);
     } catch (err) {
-      toast.error(err.response.data.message || "Failed to update user");
+      setDisabled(false);
+      console.log("Update error:", err);
+      const message =
+        err?.response?.data?.message || err?.message || "Failed to update user";
+
+      toast.error(message);
+      console.error("Update error:", err);
     }
   };
 

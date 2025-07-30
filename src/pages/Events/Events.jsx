@@ -12,9 +12,13 @@ import { CapitalizeFirstLetter } from "../../service/helper";
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [managerName, setManagerName] = useState("");
+  const [managerEmail, setManagerEmail] = useState("");
+  const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [showAddManagerForm, setShowAddManagerForm] = useState(false);
   const [pagination, setPagination] = useState({
     current_page: 1,
     total_page: 1,
@@ -130,12 +134,16 @@ const Events = () => {
   const handleStatusChange = async (id, status) => {
     Swal.fire({
       title: `Are you sure?`,
-      text: `You want to ${status === "approved" ? "approve" : "reject"} this event!`,
+      text: `You want to ${
+        status === "approved" ? "approve" : "reject"
+      } this event!`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: `Yes, ${status === "approved" ? "approve" : "reject"} it!`,
+      confirmButtonText: `Yes, ${
+        status === "approved" ? "approve" : "reject"
+      } it!`,
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
@@ -144,7 +152,9 @@ const Events = () => {
           });
           if (response.data.success) {
             toast.success(
-              `Event ${status === "approved" ? "approved" : "rejected"} successfully`
+              `Event ${
+                status === "approved" ? "approved" : "rejected"
+              } successfully`
             );
             fetchevents();
           } else {
@@ -164,6 +174,54 @@ const Events = () => {
   const handleCloseModal = () => {
     setModalType(null);
     setSelectedEvent(null);
+  };
+
+  const handleAddManager = async (e) => {
+    e.preventDefault();
+    if (!managerName) {
+      toast.error("Manager name is required");
+      return;
+    }
+    if (!managerEmail) {
+      toast.error("Manager email is required");
+      return;
+    }
+    setDisabled(true);
+    try {
+      const response = await axios.post(`virtual-events/registration`, {
+        eventId: selectedEvent._id,
+        name: managerName,
+        email: managerEmail,
+      });
+      if (response?.data?.success) {
+        console.log(response.data);
+        setDisabled(false);
+        toast.success("Event manager added successfully");
+        setShowAddManagerForm(false);
+        setManagerName("");
+        setManagerEmail("");
+        setSelectedEvent((prev) => ({
+          ...prev,
+          eventManager: [
+            ...prev.eventManager,
+            {
+              name: managerName,
+              email: managerEmail,
+              username: response?.data?.data?.username,
+              password: response?.data?.data?.password,
+            },
+          ],
+        }));
+      } else {
+        toast.error(response?.data?.message || "Failed to add event manager");
+      }
+    } catch (error) {
+      console.log(error);
+      setDisabled(false);
+      toast.error(
+        error?.response?.data?.message || "Failed to add event manager"
+      );
+    }
   };
 
   return (
@@ -245,8 +303,7 @@ const Events = () => {
                   <td>
                     {event.status === "approved" ? (
                       <span className="badge bg-success">Approved</span>
-                    ) : 
-                    event.status === "rejected" ? (
+                    ) : event.status === "rejected" ? (
                       <span className="badge bg-danger">Rejected</span>
                     ) : (
                       <span className="badge bg-warning">Pending</span>
@@ -266,13 +323,17 @@ const Events = () => {
                         className="bi bi-check2-circle text-success fs-5 me-3"
                         title="Activate User"
                         style={{ cursor: "pointer" }}
-                        onClick={() => handleStatusChange(event._id, "approved")}
+                        onClick={() =>
+                          handleStatusChange(event._id, "approved")
+                        }
                       ></i>
                     ) : (
                       <i
                         className="bi bi-ban text-danger fs-5 me-3"
                         style={{ cursor: "pointer" }}
-                        onClick={() => handleStatusChange(event._id, "rejected")}
+                        onClick={() =>
+                          handleStatusChange(event._id, "rejected")
+                        }
                         title="Block User"
                       ></i>
                     )}
@@ -446,9 +507,81 @@ const Events = () => {
                       <div className="col-12">
                         <div className="card bg-light">
                           <div className="card-body">
-                            <h6 className="text-uppercase text-muted mb-3">
-                              🎟️ Event Managers
-                            </h6>
+                            {/* Heading and Add Button */}
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <h6 className="text-uppercase text-muted mb-0">
+                                🎟️ Event Managers
+                              </h6>
+                              {selectedEvent?.status === "approved" && (
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() =>
+                                    setShowAddManagerForm((prev) => !prev)
+                                  }
+                                >
+                                  {showAddManagerForm ? "Cancel" : "Add Manager"}
+                                </button>
+                              )}
+                            </div>
+
+                            {showAddManagerForm && (
+                              <form
+                                className="row row-cols-lg-2 align-items-center mb-2"
+                                onSubmit={handleAddManager}
+                              >
+                                <div className="col-12">
+                                  <label
+                                    className="visually-hidden"
+                                    htmlFor="inlineFormInputGroupName"
+                                  >
+                                    Name
+                                  </label>
+                                  <div className="input-group">
+                                    <input
+                                      type="text"
+                                      className="form-control"
+                                      id="inlineFormInputGroupName"
+                                      placeholder="Name"
+                                      value={managerName}
+                                      onChange={(e) =>
+                                        setManagerName(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-12">
+                                  <label
+                                    className="visually-hidden"
+                                    htmlFor="inlineFormInputGroupEmail"
+                                  >
+                                    Email
+                                  </label>
+                                  <div className="input-group">
+                                    <input
+                                      type="email"
+                                      className="form-control"
+                                      id="inlineFormInputGroupEmail"
+                                      placeholder="Email"
+                                      value={managerEmail}
+                                      onChange={(e) =>
+                                        setManagerEmail(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-12 mt-2">
+                                  <button
+                                    disabled={disabled}
+                                    type="submit"
+                                    className="btn btn-primary btn-sm"
+                                  >
+                                    Submit
+                                  </button>
+                                </div>
+                              </form>
+                            )}
                             <table className="table table-bordered table-striped">
                               <thead className="table-dark">
                                 <tr>
