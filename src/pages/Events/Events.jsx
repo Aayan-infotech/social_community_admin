@@ -8,6 +8,7 @@ import Table from "../../components/Table";
 import Th from "../../components/Th";
 import { dateTimeFormat } from "../../service/event/event";
 import { CapitalizeFirstLetter } from "../../service/helper";
+import images from "../../contstants/images";
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -318,25 +319,19 @@ const Events = () => {
                       title="View Details"
                     ></i>
                     {/* Approve / Block Event */}
-                    {event.status !== "approved" ? (
-                      <i
-                        className="bi bi-check2-circle text-success fs-5 me-3"
-                        title="Activate User"
-                        style={{ cursor: "pointer" }}
-                        onClick={() =>
-                          handleStatusChange(event._id, "approved")
-                        }
-                      ></i>
-                    ) : (
-                      <i
-                        className="bi bi-ban text-danger fs-5 me-3"
-                        style={{ cursor: "pointer" }}
-                        onClick={() =>
-                          handleStatusChange(event._id, "rejected")
-                        }
-                        title="Block User"
-                      ></i>
-                    )}
+                    <i
+                      className="bi bi-check2-circle text-success fs-5 me-3"
+                      title="Activate Event"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleStatusChange(event._id, "approved")}
+                    ></i>
+
+                    <i
+                      className="bi bi-ban text-danger fs-5 me-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleStatusChange(event._id, "rejected")}
+                      title="Block Event"
+                    ></i>
                   </td>
                 </tr>
               ))
@@ -519,7 +514,9 @@ const Events = () => {
                                     setShowAddManagerForm((prev) => !prev)
                                   }
                                 >
-                                  {showAddManagerForm ? "Cancel" : "Add Manager"}
+                                  {showAddManagerForm
+                                    ? "Cancel"
+                                    : "Add Manager"}
                                 </button>
                               )}
                             </div>
