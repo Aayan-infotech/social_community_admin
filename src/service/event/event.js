@@ -141,3 +141,13 @@ export const combineDateAndTime = (date, time) => {
     const combinedDateTime = new Date(combinedDateTimeString);
     return combinedDateTime;
 }
+
+export const getEventDashboard = async () => {
+    try {
+        const { data } = await axios.get(`virtual-events/getEventDashboard`);
+        return data?.data || {};
+    } catch (error) {
+        console.error("Error fetching event dashboard:", error);
+        throw error;
+    }
+};

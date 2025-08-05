@@ -1,5 +1,4 @@
-import Sidebar from "../../components/Sidebar/Sidebar";
-import Topbar from "../../components/Topbar/Topbar";
+import axios from "axios";
 import "./Dashboard.css";
 import {
   BarChart,
@@ -12,31 +11,40 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { use, useEffect, useState } from "react";
+import { getEventDashboard } from "../../service/event/event";
 
 export default function Page() {
+  const [data, setData] = useState([]);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await getEventDashboard();
+      setData(response);
+    };
+    fetchData();
+  }, []);
+  console.log("Dashboard Data:", data);
+
   const metrics = [
     {
-      title: "Total Users",
-      value: 2345,
+      title: "Total Events",
+      value: data?.totalEvents || 0,
       icon: "bi-people-fill",
       color: "#4e73df",
     },
-    { title: "Businesses", value: 768, icon: "bi-building", color: "#1cc88a" },
+    { title: "Past Events", value: data?.pastEvents || 0, icon: "bi-building", color: "#1cc88a" },
     {
-      title: "Categories",
-      value: 22,
+      title: "Upcoming Events",
+      value: data?.upcomingEvents || 0,
       icon: "bi-grid-1x2-fill",
       color: "#36b9cc",
     },
   ];
 
-  const barData = [
-    { name: "Jan", users: 400 },
-    { name: "Feb", users: 600 },
-    { name: "Mar", users: 900 },
-    { name: "Apr", users: 700 },
-    { name: "May", users: 1100 },
-  ];
+  const barData = data?.barData || [];
+  console.log("Bar Data:", barData);
 
   const pieData = [
     { name: "Retail", value: 40 },
@@ -76,13 +84,13 @@ export default function Page() {
       <div className="dashboard-charts d-flex flex-wrap gap-4">
         {/* Bar Chart */}
         <div className="dashboard-chart-box">
-          <h6 className="mb-3">Monthly Users</h6>
+          <h6 className="mb-3">Monthly Revenue</h6>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="users" fill="#4e73df" />
+              <Bar dataKey="revenue" fill="#4e73df" />
             </BarChart>
           </ResponsiveContainer>
         </div>

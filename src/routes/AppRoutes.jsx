@@ -25,6 +25,8 @@ import EventOrganizer from "../pages/Events/EventOrganizer";
 import HealthWellness from "../pages/NearbyBussiness/HealthWellness";
 import Vendors from "../pages/CategoryManagement/Vendors";
 import AllProducts from "../pages/CategoryManagement/AllProducts";
+import OrderList from "../pages/CategoryManagement/ProductOrder";
+import ProductOrder from "../pages/CategoryManagement/ProductOrder";
 
 
 export default function AppRoutes() {
@@ -53,6 +55,7 @@ export default function AppRoutes() {
           <Route path="subcategories" element={<BusinessSubCategories />} />
           <Route path="vendors" element={<Vendors />} />
           <Route path="all-products" element={<AllProducts />} />
+          <Route path="product-orders" element={<ProductOrder />} />
 
           <Route path="nearby-categories" element={<NearByCategory />} />
           <Route path="all-businesses" element={<BusinessList />} />
@@ -78,7 +81,8 @@ export default function AppRoutes() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="events" element={<Event />} />
+          {/* <Route path="events" element={<Event />} /> */}
+          <Route path="orders" element={<ProductOrder />} />
         </Route>
       )}
 

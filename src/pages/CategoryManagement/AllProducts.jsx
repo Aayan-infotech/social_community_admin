@@ -8,6 +8,7 @@ import Table from "../../components/Table";
 import Th from "../../components/Th";
 import { CapitalizeFirstLetter } from "../../service/helper";
 import ImageCarousle from "../../components/ImageCarousle";
+import UserDetailsCard from "../../components/UserDetailsCard";
 
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
@@ -334,7 +335,9 @@ const AllProducts = () => {
                       </p>
                       <p>
                         <strong>Subcategory:</strong>{" "}
-                        {CapitalizeFirstLetter(selectedProduct.subcategory_name)}
+                        {CapitalizeFirstLetter(
+                          selectedProduct.subcategory_name
+                        )}
                       </p>
                       <p>
                         <strong>Price:</strong> ${selectedProduct.product_price}
@@ -357,29 +360,12 @@ const AllProducts = () => {
                       </p>
                       <hr />
                       <h6 className="text-muted">👤 Seller Information</h6>
-                      <div className="d-flex align-items-center">
-                        <img
-                          src={selectedProduct.profile_image}
-                          alt="Seller"
-                          className="rounded-circle me-3"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "cover",
-                          }}
-                        />
-                        <div>
-                          <strong>{selectedProduct.user_name}</strong>
-                          <p className="mb-0">
-                            <i className="bi bi-envelope me-2"></i>
-                            {selectedProduct.user_email}
-                          </p>
-                          <p className="mb-0">
-                            <i className="bi bi-person me-2"></i>ID:{" "}
-                            {selectedProduct.user_id}
-                          </p>
-                        </div>
-                      </div>
+                      <UserDetailsCard
+                        profile_image={selectedProduct.profile_image}
+                        user_name={selectedProduct.user_name}
+                        user_email={selectedProduct.user_email}
+                        user_id={selectedProduct.user_id}
+                      />
                     </div>
                   </div>
                   <div className="row">

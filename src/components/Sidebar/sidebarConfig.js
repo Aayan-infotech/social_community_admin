@@ -74,6 +74,11 @@ export const sidebarConfig = {
                     id: 'allProducts',
                     label: 'All Products',
                     url: '/admin/all-products',
+                },
+                {
+                    id: 'productOrders',
+                    label: 'Product Orders',
+                    url: '/admin/product-orders',
                 }
             ]
         },
