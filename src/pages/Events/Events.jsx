@@ -195,7 +195,6 @@ const Events = () => {
         email: managerEmail,
       });
       if (response?.data?.success) {
-        console.log(response.data);
         setDisabled(false);
         toast.success("Event manager added successfully");
         setShowAddManagerForm(false);
@@ -217,7 +216,7 @@ const Events = () => {
         toast.error(response?.data?.message || "Failed to add event manager");
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setDisabled(false);
       toast.error(
         error?.response?.data?.message || "Failed to add event manager"
@@ -507,7 +506,7 @@ const Events = () => {
                               <h6 className="text-uppercase text-muted mb-0">
                                 🎟️ Event Managers
                               </h6>
-                              {selectedEvent?.status === "approved" && (
+                              {/* {selectedEvent?.status === "approved" && (
                                 <button
                                   className="btn btn-primary btn-sm"
                                   onClick={() =>
@@ -518,7 +517,7 @@ const Events = () => {
                                     ? "Cancel"
                                     : "Add Manager"}
                                 </button>
-                              )}
+                              )} */}
                             </div>
 
                             {showAddManagerForm && (

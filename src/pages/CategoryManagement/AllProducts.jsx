@@ -131,7 +131,6 @@ const AllProducts = () => {
   const handleView = (product) => {
     setModalType("view");
     setSelectedProduct(product);
-    console.log("Selected Product:", product);
   };
 
   const handleCloseModal = () => {

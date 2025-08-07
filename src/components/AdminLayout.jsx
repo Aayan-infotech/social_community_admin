@@ -1,10 +1,11 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar/Sidebar";
 import Topbar from "./Topbar/Topbar";
+import './AdminLayout.css';
 
 const AdminLayout = () => {
   return (
-    <div className="container-fluid d-flex flex-column flex-md-row p-0">
+    <div className="container-fluid d-flex flex-column flex-md-row p-0 outerContainer">
       <Sidebar />
       <div className="main-content flex-grow-1 bg-light">
         <Topbar />

@@ -1,6 +1,6 @@
 import Carousel from "react-bootstrap/Carousel";
 
-function ImageCarousle({ images }) {
+function ImageCarousle({ images , height , width }) {
   return (
     <Carousel fade>
       {images.map((image, index) => (
@@ -9,7 +9,7 @@ function ImageCarousle({ images }) {
             src={image}
             alt={`Slide ${index}`}
             className="d-block w-100"
-            style={{ objectFit: "cover", height: "400px" }}
+            style={{ objectFit: "cover", height: height || "400px", width: width || "100%" }}
           />
         </Carousel.Item>
       ))}

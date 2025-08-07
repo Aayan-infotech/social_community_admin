@@ -150,7 +150,6 @@ function Event({ type }) {
         email: managerEmail,
       });
       if (response?.data?.success) {
-        console.log(response.data);
         setDisabled(false);
         toast.success("Event manager added successfully");
         setShowAddManagerForm(false);

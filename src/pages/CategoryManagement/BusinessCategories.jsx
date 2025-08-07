@@ -161,9 +161,7 @@ const MarketplaceCategory = () => {
         toast.error(response.data.message || "Operation failed");
       }
     } catch (err) {
-      console.log(err);
       toast.error(err.response?.data?.message || "Error saving category");
-      // toast.error("Error saving category");
     } finally {
       setDisabled(false);
     }

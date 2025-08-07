@@ -27,7 +27,7 @@ import Vendors from "../pages/CategoryManagement/Vendors";
 import AllProducts from "../pages/CategoryManagement/AllProducts";
 import OrderList from "../pages/CategoryManagement/ProductOrder";
 import ProductOrder from "../pages/CategoryManagement/ProductOrder";
-
+import OrderDetails from "../pages/CategoryManagement/OrderDetails";
 
 export default function AppRoutes() {
   const userState = useSelector((state) => state.user);
@@ -56,6 +56,7 @@ export default function AppRoutes() {
           <Route path="vendors" element={<Vendors />} />
           <Route path="all-products" element={<AllProducts />} />
           <Route path="product-orders" element={<ProductOrder />} />
+          <Route path="product-orders/:orderId" element={<OrderDetails />} />
 
           <Route path="nearby-categories" element={<NearByCategory />} />
           <Route path="all-businesses" element={<BusinessList />} />
@@ -63,11 +64,10 @@ export default function AppRoutes() {
           <Route path="faqs" element={<FAQ />} />
           <Route path="contact" element={<ContactUs />} />
           <Route path="events" element={<Events />} />
-          
+
           <Route path="reported-posts" element={<ReportedPost />} />
           <Route path="all-event-organizers" element={<EventOrganizer />} />
           <Route path="health-wellness" element={<HealthWellness />} />
-          
         </Route>
       )}
 
@@ -83,6 +83,16 @@ export default function AppRoutes() {
           <Route path="dashboard" element={<Dashboard />} />
           {/* <Route path="events" element={<Event />} /> */}
           <Route path="orders" element={<ProductOrder />} />
+          <Route path="place-orders" element={<ProductOrder type="placed" />} />
+          <Route
+            path="cancelled-orders"
+            element={<ProductOrder type="cancelled" />}
+          />
+          <Route
+            path="completed-orders"
+            element={<ProductOrder type="delivered" />}
+          />
+          <Route path="orders/:orderId" element={<OrderDetails />} />
         </Route>
       )}
 
@@ -97,7 +107,7 @@ export default function AppRoutes() {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="events" element={<Event />} />
-          <Route path="upcoming-events" element={<Event type="upcoming" />} /> 
+          <Route path="upcoming-events" element={<Event type="upcoming" />} />
           <Route path="past-events" element={<Event type="past" />} />
           <Route path="booked-tickets" element={<BookedTickets />} />
           <Route path="cancelled-tickets" element={<CancelledTickets />} />

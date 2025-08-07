@@ -50,7 +50,7 @@ function Table({
             <input
               type="text"
               className="form-control"
-              placeholder="Search users by name, email, or mobile..."
+              placeholder="Search ..."
               value={searchTerm}
               onChange={handleSearch}
             />

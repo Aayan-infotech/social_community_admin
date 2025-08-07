@@ -1,5 +1,7 @@
 .custom-sidebar {
-  min-width: 250px;
+  /* display: table-cell; */
+  max-width: 250px;
+  display: inline-block;
   min-height: 100vh;
   background-color: #1f2937;
   color: white;
