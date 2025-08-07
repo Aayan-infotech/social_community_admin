@@ -33,7 +33,7 @@ const ProductOrder = ({ type = "" }) => {
 
   useEffect(() => {
     fetchOrders();
-  }, [pagination.current_page, debouncedSearchTerm , sortConfig, type]);
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig, type]);
 
   const fetchOrders = async () => {
     try {
@@ -147,7 +147,16 @@ const ProductOrder = ({ type = "" }) => {
   return (
     <>
       <Table
-        PageTitle="📦 All Orders"
+        // PageTitle="📦  Orders"
+        PageTitle={`📦  ${
+          type === "placed"
+            ? "Placed"
+            : type === "cancelled"
+            ? "Cancelled"
+            : type === "delivered"
+            ? "Completed"
+            : "All"
+        } Orders`}
         pagination={pagination}
         setPagination={setPagination}
         dataLength={orders.length || 0}
