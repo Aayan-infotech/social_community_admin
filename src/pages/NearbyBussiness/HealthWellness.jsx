@@ -143,9 +143,12 @@ const HealthWellness = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.put(`health-wellness/updateResource/${id}`, {
-            status,
-          });
+          const response = await axios.put(
+            `health-wellness/updateResource/${id}`,
+            {
+              status,
+            }
+          );
           if (response.data.success) {
             toast.success(
               `Resource ${
@@ -187,12 +190,12 @@ const HealthWellness = () => {
                 sortIcon={getSortIcon("location")}
                 onClick={() => handleSort("location")}
               />
+              <Th children="Posted By" />
               <Th
                 children="Status"
                 sortIcon={getSortIcon("status")}
                 onClick={() => handleSort("status")}
               />
-              <Th children="Posted By" />
               <Th children="Actions" />
             </tr>
           </thead>
