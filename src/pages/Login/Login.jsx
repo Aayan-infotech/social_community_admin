@@ -12,6 +12,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const userState = useSelector((state) => state.user);
 
@@ -137,7 +138,28 @@ const LoginPage = () => {
               required
             />
           </div>
-          <div className="mb-3">
+
+<div className="mb-3 position-relative">
+  <label className="form-label fw-semibold">Password</label>
+<input
+  type={showPassword ? "text" : "password"}
+  className="form-control pe-5" // extra padding for icon
+  placeholder="Enter password"
+  name="password"
+  value={form.password}
+  onChange={handleChange}
+  required
+/>
+<span
+  className="password-toggle"
+  onClick={() => setShowPassword(!showPassword)}
+>
+  {showPassword ? <i className="bi bi-eye-slash-fill"></i> : <i className="bi bi-eye-fill"></i>}
+</span>
+</div>
+
+
+          {/* <div className="mb-3">
             <label className="form-label fw-semibold">Password</label>
             <input
               type="password"
@@ -148,7 +170,7 @@ const LoginPage = () => {
               onChange={handleChange}
               required
             />
-          </div>
+          </div> */}
           <div className="d-grid">
             <button
               type="submit"

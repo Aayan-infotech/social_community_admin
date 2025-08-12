@@ -42,3 +42,12 @@ input.form-control {
 input.form-control::placeholder {
   color: #9ca3af;
 }
+
+input.form-control:disabled {
+  background-color: #374151;
+  color: white;
+}
+
+input.form-control:disabled::placeholder {
+  color: #9ca3af;
+}

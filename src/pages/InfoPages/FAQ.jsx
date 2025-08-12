@@ -11,27 +11,22 @@ export default function Page() {
   const [faqs, setFaqs] = useState([]);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    category_name: "",
-    category_image: "",
+    question: "",
+    answer: "",
   });
-  const [modalType, setModalType] = useState(null);
+  const [modalType, setModalType] = useState(null); // "add" | "edit" | "view"
   const [loading, setLoading] = useState(true);
 
-  const handleAddCategory = () => {
+  const handleAdd = () => {
     setModalType("add");
-    setFormData({
-      category_name: "",
-      category_image: "",
-    });
+    setFormData({ question: "", answer: "" });
   };
 
   const handleCloseModal = () => {
     setModalType(null);
-    setFormData({
-      category_name: "",
-      category_image: "",
-    });
+    setFormData({ question: "", answer: "" });
   };
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -42,33 +37,39 @@ export default function Page() {
   const handleSave = async () => {
     try {
       setLoading(true);
-
-      const response = await axios.post(
-        `marketplace/upsert-category`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.post(`users/FAQ`, formData);
 
       if (response.data.success) {
-        toast.success("Category added successfully");
+        toast.success("FAQ added successfully");
         setModalType(null);
-        setFormData({
-          category_name: "",
-          category_image: "",
-        });
-        fetchfaqs();
+        setFormData({ question: "", answer: "" });
+        fetchFaqs();
       } else {
-        toast.error(response.data.message || "Failed to add category");
+        toast.error(response.data.message || "Failed to add FAQ");
       }
     } catch (error) {
-      toast.error("Failed to add category");
+      toast.error("Failed to add FAQ");
       setError(error.message || "An error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const response = await axios.put(`users/FAQ/${formData.id}`, formData);
+
+      if (response.data.success) {
+        toast.success("FAQ updated successfully");
+        setModalType(null);
+        setFormData({ question: "", answer: "" });
+        fetchFaqs();
+      } else {
+        toast.error(response.data.message || "Failed to update FAQ");
+      }
+    } catch (error) {
+      toast.error("Failed to update FAQ");
+      setError(error.message || "An error occurred");
     }
   };
 
@@ -84,77 +85,52 @@ export default function Page() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`marketplace/delete-marketplace-category/${id}`)
+          .delete(`users/delete-faq/${id}`)
           .then((response) => {
             if (response.data.success) {
-              Swal.fire({
-                title: "Deleted!",
-                text: "Category has been deleted.",
-                icon: "success",
-              });
-              fetchfaqs();
+              Swal.fire("Deleted!", "FAQ has been deleted.", "success");
+              fetchFaqs();
             } else {
-              Swal.fire({
-                title: "Error!",
-                text: response.data.message || "Failed to delete category",
-                icon: "error",
-              });
+              Swal.fire(
+                "Error!",
+                response.data.message || "Failed to delete FAQ",
+                "error"
+              );
             }
           })
           .catch((error) => {
-            Swal.fire({
-              title: "Error!",
-              text: error.message || "Failed to delete category",
-              icon: "error",
-            });
+            Swal.fire(
+              "Error!",
+              error.response.data.message || "Failed to delete FAQ",
+              "error"
+            );
           });
       }
     });
   };
 
-  const handleUpdate = async () => {
-    try {
-      const response = await axios.post(
-        `marketplace/upsert-category`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Category updated successfully");
-        setModalType(null);
-        setFormData({
-          category_name: "",
-          category_image: "",
-        });
-        fetchfaqs();
-      } else {
-        toast.error(response.data.message || "Failed to update category");
-      }
-    } catch (error) {
-      toast.error("Failed to update category");
-      setError(error.message || "An error occurred");
-    }
-  };
-
-  const handleEdit = (index) => {
+  const handleEdit = (faq) => {
     setModalType("edit");
     setFormData({
-      id: faqs[index]._id,
-      category_name: faqs[index].category_name,
-      category_image: faqs[index].category_image,
+      id: faq._id,
+      question: faq.question,
+      answer: faq.answer,
+    });
+  };
+
+  const handleView = (faq) => {
+    setModalType("view");
+    setFormData({
+      question: faq.question,
+      answer: faq.answer,
     });
   };
 
   useEffect(() => {
-    fetchfaqs();
+    fetchFaqs();
   }, []);
 
-  const fetchfaqs = async () => {
+  const fetchFaqs = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`users/FAQ`);
@@ -162,10 +138,10 @@ export default function Page() {
       if (response.data.success) {
         setFaqs(response.data.data || []);
       } else {
-        toast.error(response.data.message || "Failed to fetch faqs");
+        toast.error(response.data.message || "Failed to fetch FAQs");
       }
     } catch (error) {
-      toast.error("Failed to fetch faqs");
+      toast.error("Failed to fetch FAQs");
       setError(error.message || "An error occurred");
     } finally {
       setLoading(false);
@@ -185,11 +161,12 @@ export default function Page() {
   if (error) {
     return <div className="p-4 text-center text-danger">Error: {error}</div>;
   }
+
   return (
     <div className="p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h3 className="fw-bold text-dark">FAQ</h3>
-        <Button title="Add FAQ" onClick={handleAddCategory} variant="primary">
+        <Button title="Add FAQ" onClick={handleAdd} variant="primary">
           Add FAQ
         </Button>
       </div>
@@ -204,23 +181,28 @@ export default function Page() {
             </tr>
           </thead>
           <tbody>
-
-            {faqs.map((faq, idx) => (
+            {faqs.map((faq) => (
               <tr key={faq._id}>
                 <td>{faq.question}</td>
                 <td>{faq.answer}</td>
                 <td>
                   <i
-                    className="bi bi-pencil text-warning fs-5"
+                    className="bi bi-eye text-info fs-5 m-2"
                     style={{ cursor: "pointer" }}
-                    onClick={() => handleEdit(idx)}
-                    data-bs-toggle="modal"
-                    title="Edit User"
+                    onClick={() => handleView(faq)}
+                    title="View FAQ"
+                  ></i>
+                  <i
+                    className="bi bi-pencil text-warning fs-5 m-2"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleEdit(faq)}
+                    title="Edit FAQ"
                   ></i>
                   <i
                     className="bi bi-trash text-danger fs-5 m-2"
                     style={{ cursor: "pointer" }}
                     onClick={() => handleDelete(faq._id)}
+                    title="Delete FAQ"
                   ></i>
                 </td>
               </tr>
@@ -234,17 +216,17 @@ export default function Page() {
         <div
           className="modal show fade d-block"
           tabIndex="-1"
-          role="dialog"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            role="document"
-          >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {modalType === "add" ? "Add Category" : "✏️ Edit Category"}
+                  {modalType === "add"
+                    ? "➕ Add FAQ"
+                    : modalType === "edit"
+                    ? "✏️ Edit FAQ"
+                    : "👁️ View FAQ"}
                 </h5>
                 <button
                   type="button"
@@ -253,67 +235,36 @@ export default function Page() {
                 ></button>
               </div>
               <div className="modal-body">
-                {modalType === "add" ? (
-                  <form encType="multipart/form-data">
-                    <div className="mb-3">
-                      <label className="form-label">Category Name</label>
-                      <input
-                        type="text"
-                        name="category_name"
-                        className="form-control"
-                        value={formData.category_name}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Category Image</label>
-                      <input
-                        type="file"
-                        name="category_image"
-                        className="form-control"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category_image: file,
-                            }));
-                          }
-                        }}
-                      />
-                    </div>
-                  </form>
+                {modalType === "view" ? (
+                  <div>
+                    <p>
+                      <strong>Question:</strong> {formData.question}
+                    </p>
+                    <p>
+                      <strong>Answer:</strong> {formData.answer}
+                    </p>
+                  </div>
                 ) : (
-                  <form encType="multipart/form-data">
+                  <form>
                     <div className="mb-3">
-                      <input type="hidden" name="id" value={formData._id} />
-                      <label className="form-label">Category Name</label>
+                      <label className="form-label">Question</label>
                       <input
                         type="text"
-                        name="category_name"
+                        name="question"
                         className="form-control"
-                        value={formData.category_name}
+                        value={formData.question}
                         onChange={handleChange}
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label">Category Image</label>
-                      <input
-                        type="file"
-                        name="category_image"
+                      <label className="form-label">Answer</label>
+                      <textarea
+                        name="answer"
                         className="form-control"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category_image: file,
-                            }));
-                          }
-                        }}
-                      />
+                        rows="4"
+                        value={formData.answer}
+                        onChange={handleChange}
+                      ></textarea>
                     </div>
                   </form>
                 )}
@@ -326,21 +277,22 @@ export default function Page() {
                 >
                   Close
                 </button>
-                {modalType === "add" ? (
+                {modalType === "add" && (
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={handleSave}
                   >
-                    Save changes
+                    Save
                   </button>
-                ) : (
+                )}
+                {modalType === "edit" && (
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={handleUpdate}
                   >
-                    Update changes
+                    Update
                   </button>
                 )}
               </div>

@@ -1,9 +1,10 @@
 import axios from "axios";
 
-export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "", type = "all") => {
+export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "", type = "all",sortField = "eventStartDate", // default sort
+  sortOrder = "desc") => {
     try {
         const { data } = await axios.get(
-            `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}&type=${type}`,
+            `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}&type=${type}&sortField=${sortField}&sortOrder=${sortOrder}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -50,6 +51,8 @@ export const updateEvent = async (token, id, formData) => {
             }
         );
 
+        console.log(data , "data"); 
+
         return data;
     } catch (error) {
         console.error("Error updating event:", error);
@@ -90,9 +93,9 @@ export const getEventDropdownOptions = async (token) => {
     }
 };
 
-export const getBookedTicketsByEventId = async (token, eventId, page = 1, limit = 10) => {
+export const getBookedTicketsByEventId = async (token, eventId, page = 1, limit = 10, sortField = "createdAt", sortOrder = "desc") => {
     try {
-        const { data } = await axios.get(`virtual-events/getAllTickets/${eventId}?page=${page}&limit=${limit}`, {
+        const { data } = await axios.get(`virtual-events/getAllTickets/${eventId}?page=${page}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -151,3 +154,19 @@ export const getEventDashboard = async () => {
         throw error;
     }
 };
+
+
+
+export const addEvent = async (formData) => {
+    try {
+        const { data } = await axios.post(`virtual-events/add`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return data;
+    } catch (error) {
+        console.error("Error adding event:", error);
+        throw error;
+    }
+}

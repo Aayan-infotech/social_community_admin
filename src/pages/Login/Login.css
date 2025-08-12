@@ -43,3 +43,23 @@
     transform: translateY(0);
   }
 }
+
+
+/* Eye icon fix */
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  padding-top: 25px;
+  transform: translateY(-50%);
+  font-size: 1.3rem; /* Bigger */
+  color: #6c757d; /* Neutral grey */
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.2s ease-in-out;
+}
+
+.password-toggle:hover {
+  color: #0d6efd; /* Blue on hover */
+}
+

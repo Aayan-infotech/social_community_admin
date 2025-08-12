@@ -132,19 +132,91 @@ const Events = () => {
     }
   };
 
+  // const handleStatusChange = async (id, status) => {
+  //   Swal.fire({
+  //     title: `Are you sure?`,
+  //     text: `You want to ${
+  //       status === "approved" ? "approve" : "reject"
+  //     } this event!`,
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#3085d6",
+  //     cancelButtonColor: "#d33",
+  //     confirmButtonText: `Yes, ${
+  //       status === "approved" ? "approve" : "reject"
+  //     } it!`,
+  //   }).then(async (result) => {
+  //     if (result.isConfirmed) {
+  //       try {
+  //         const response = await axios.put(`virtual-events/updateEvent/${id}`, {
+  //           status,
+  //         });
+  //         if (response.data.success) {
+  //           toast.success(
+  //             `Event ${
+  //               status === "approved" ? "approved" : "rejected"
+  //             } successfully`
+  //           );
+  //           fetchevents();
+  //         } else {
+  //           toast.error(response.data.message || "Operation failed");
+  //         }
+  //       } catch (error) {
+  //         toast.error("Failed to update event status");
+  //       }
+  //     }
+  //   });
+  // };
+
   const handleStatusChange = async (id, status) => {
+    if (status === "rejected") {
+      // Ask for rejection reason before confirming
+      const { value: reason } = await Swal.fire({
+        title: "Reason for rejection",
+        input: "textarea",
+        inputLabel: "Please enter the reason for rejecting this event",
+        inputPlaceholder: "Type your reason here...",
+        inputAttributes: {
+          "aria-label": "Type your reason here",
+        },
+        showCancelButton: true,
+        confirmButtonText: "Submit",
+        cancelButtonText: "Cancel",
+        inputValidator: (value) => {
+          if (!value.trim()) {
+            return "You must provide a reason for rejection";
+          }
+        },
+      });
+
+      if (!reason) return;
+
+      try {
+        const response = await axios.put(`virtual-events/updateEvent/${id}`, {
+          status,
+          rejectionReason: reason,
+        });
+        if (response.data.success) {
+          toast.success("Event rejected successfully");
+          fetchevents();
+        } else {
+          toast.error(response.data.message || "Operation failed");
+        }
+      } catch (error) {
+        toast.error("Failed to reject event");
+      }
+      return;
+    }
+
+    // For approval, keep existing logic
     Swal.fire({
       title: `Are you sure?`,
-      text: `You want to ${
-        status === "approved" ? "approve" : "reject"
-      } this event!`,
+      text: `You want to approve this event!`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: `Yes, ${
-        status === "approved" ? "approve" : "reject"
-      } it!`,
+      confirmButtonText: `Yes, approve it!`,
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
@@ -152,17 +224,13 @@ const Events = () => {
             status,
           });
           if (response.data.success) {
-            toast.success(
-              `Event ${
-                status === "approved" ? "approved" : "rejected"
-              } successfully`
-            );
+            toast.success("Event approved successfully");
             fetchevents();
           } else {
             toast.error(response.data.message || "Operation failed");
           }
         } catch (error) {
-          toast.error("Failed to update event status");
+          toast.error("Failed to approve event");
         }
       }
     });
@@ -437,6 +505,41 @@ const Events = () => {
                                   {dateTimeFormat(
                                     selectedEvent?.eventEndDate,
                                     selectedEvent?.eventTimeEnd
+                                  )}
+                                </p>
+
+                                <p className="mb-0">
+                                  <i className="bi bi-ticket-fill text-danger me-2"></i>
+                                  <strong>Ticket Price:</strong>{" "}
+                                  {selectedEvent?.isFreeEvent
+                                    ? "Free"
+                                    : `$${selectedEvent?.ticketPrice}`}
+                                </p>
+                                <p className="mb-0">
+                                  <i className="bi bi-person-fill text-primary me-2"></i>
+                                  <strong>No Of Slots:</strong>{" "}
+                                  {`${
+                                    selectedEvent?.noOfSlots
+                                      ? selectedEvent?.noOfSlots
+                                      : "---"
+                                  } slots`}
+                                </p>
+
+                                <p className="mb-0">
+                                  <i className="bi bi-calendar-check text-secondary me-2"></i>
+                                  <strong>Status:</strong>{" "}
+                                  {selectedEvent?.status === "approved" ? (
+                                    <span className="badge bg-success">
+                                      Approved
+                                    </span>
+                                  ) : selectedEvent?.status === "rejected" ? (
+                                    <span className="badge bg-danger">
+                                      Rejected
+                                    </span>
+                                  ) : (
+                                    <span className="badge bg-warning">
+                                      Pending
+                                    </span>
                                   )}
                                 </p>
                                 <p className="mb-0">

@@ -1,178 +1,194 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../../components/Sidebar/Sidebar";
-import Topbar from "../../components/Topbar/Topbar";
+// import "./Pages.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import Button from "react-bootstrap/Button";
+import { useDebounce } from "../../hook/useDebounce";
 import Swal from "sweetalert2";
-import images from "../../contstants/images";
+import Th from "../../components/Th";
+import Table from "../../components/Table";
 
-export default function Page() {
+const InfoPages = () => {
   const [pages, setPages] = useState([]);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    pageName: "",
-    pageUrl: "",
-    pageDescription: "",
-  });
-  const [modalType, setModalType] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedPageIndex, setSelectedPageIndex] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [disabled, setDisabled] = useState(false);
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "asc",
+  });
+  const [formData, setFormData] = useState({
+    title: "",
+    url: "",
+    description: "",
+  });
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_page: 1,
+    per_page: 10,
+    total_records: 0,
+  });
 
-  const handleAddPage = () => {
-    setModalType("add");
-    setFormData({
-      pageName: "",
-      pageUrl: "",
-      pageDescription: "",
-    });
-  };
+  const debouncedSearchTerm = useDebounce(searchTerm, 800);
 
-  const handleCloseModal = () => {
-    setModalType(null);
-    setFormData({
-      pageName: "",
-      pageUrl: "",
-      pageDescription: "",
-    });
-  };
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  useEffect(() => {
+    fetchPages();
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig]);
 
-  const handleSave = async () => {
+  const fetchPages = async () => {
     try {
       setLoading(true);
+      const params = new URLSearchParams({
+        page: pagination.current_page,
+        limit: pagination.per_page,
+      });
 
-      const response = await axios.post(
-        `marketplace/upsert-category`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Category added successfully");
-        setModalType(null);
-        setFormData({
-          category_name: "",
-          category_image: "",
-        });
-        fetchCategories();
-      } else {
-        toast.error(response.data.message || "Failed to add category");
+      if (debouncedSearchTerm.trim()) {
+        params.append("search", debouncedSearchTerm.trim());
       }
-    } catch (error) {
-      toast.error("Failed to add category");
-      setError(error.message || "An error occurred");
+
+      if (sortConfig.key) {
+        params.append("sortBy", sortConfig.key);
+        params.append("sortOrder", sortConfig.direction);
+      }
+
+      const response = await axios.get(`users/get-pages?${params.toString()}`);
+      if (response.data.success) {
+        const data = response.data.data?.infoPages || [];
+        setPages(data);
+        setPagination((prev) => ({
+          ...prev,
+          current_page: response.data.data.current_page || 1,
+          total_page: response.data.data.total_page || 1,
+          per_page: response.data.data.per_page || 10,
+          total_records: response.data.data.total_records || data.length,
+        }));
+      } else {
+        toast.error(response.data.message || "Failed to fetch pages");
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error("Failed to fetch pages");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios
-          .delete(`marketplace/delete-marketplace-category/${id}`)
-          .then((response) => {
-            if (response.data.success) {
-              Swal.fire({
-                title: "Deleted!",
-                text: "Category has been deleted.",
-                icon: "success",
-              });
-              fetchCategories();
-            } else {
-              Swal.fire({
-                title: "Error!",
-                text: response.data.message || "Failed to delete category",
-                icon: "error",
-              });
-            }
-          })
-          .catch((error) => {
-            Swal.fire({
-              title: "Error!",
-              text: error.message || "Failed to delete category",
-              icon: "error",
-            });
-          });
-      }
-    });
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
   };
 
-  const handleUpdate = async () => {
-    try {
-      const response = await axios.post(
-        `marketplace/upsert-category`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
 
-      if (response.data.success) {
-        toast.success("Category updated successfully");
-        setModalType(null);
-        setFormData({
-          category_name: "",
-          category_image: "",
-        });
-        fetchCategories();
-      } else {
-        toast.error(response.data.message || "Failed to update category");
-      }
-    } catch (error) {
-      toast.error("Failed to update category");
-      setError(error.message || "An error occurred");
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return <SortIcon inactive />;
     }
+    if (sortConfig.direction === "asc") {
+      return <SortIcon asc />;
+    }
+    if (sortConfig.direction === "desc") {
+      return <SortIcon desc />;
+    }
+  };
+
+  const SortIcon = ({ inactive, asc, desc }) => (
+    <div
+      className="d-flex flex-column align-items-center"
+      style={{ fontSize: "10px" }}
+    >
+      <i
+        className={`bi bi-caret-up-fill ${
+          inactive ? "text-secondary" : asc ? "text-white" : "text-secondary"
+        }`}
+        style={{ marginBottom: "-8px" }}
+      ></i>
+      <i
+        className={`bi bi-caret-down-fill ${
+          inactive ? "text-secondary" : desc ? "text-white" : "text-secondary"
+        }`}
+      ></i>
+    </div>
+  );
+
+  const handleView = (index) => {
+    setSelectedPageIndex(index);
+    setFormData({
+      title: pages[index].title,
+      url: pages[index].url,
+      description: pages[index].description,
+    });
+    setModalType("view");
+  };
+
+  const handleAdd = () => {
+    setSelectedPageIndex(null);
+    setFormData({
+      title: "",
+      url: "",
+      description: "",
+    });
+    setModalType("add");
   };
 
   const handleEdit = (index) => {
-    setModalType("edit");
+    setSelectedPageIndex(index);
     setFormData({
-      id: categories[index]._id,
-      category_name: categories[index].category_name,
-      category_image: categories[index].category_image,
+      title: pages[index].title,
+      url: pages[index].url,
+      description: pages[index].description,
+    });
+    setModalType("edit");
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPageIndex(null);
+    setModalType(null);
+    setFormData({
+      title: "",
+      url: "",
+      description: "",
     });
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-  const fetchCategories = async () => {
+  const handleSave = async () => {
+    setDisabled(true);
     try {
-      setLoading(true);
-      const response = await axios.get(`marketplace/get-category`);
-
+      const response = await axios.put(
+        `users/update-page/${pages[selectedPageIndex]._id}`,
+        formData
+      );
       if (response.data.success) {
-        setCategories(response.data.data || []);
+        toast.success("Page saved successfully");
+        fetchPages();
+        handleCloseModal();
       } else {
-        toast.error(response.data.message || "Failed to fetch categories");
+        toast.error(response.data.message || "Failed to save page");
       }
-    } catch (error) {
-      toast.error("Failed to fetch categories");
-      setError(error.message || "An error occurred");
+    } catch (err) {
+      toast.error("Failed to save page");
     } finally {
-      setLoading(false);
+      setDisabled(false);
     }
   };
 
@@ -189,81 +205,88 @@ export default function Page() {
   if (error) {
     return <div className="p-4 text-center text-danger">Error: {error}</div>;
   }
-  return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="fw-bold text-dark">Info Pages</h3>
-        <Button
-          title="Add Info Page"
-          onClick={handleAddCategory}
-          variant="primary"
-        >
-          Add Info Page
-        </Button>
-      </div>
 
-      <div className="table-responsive">
+  return (
+    <>
+      <Table
+        PageTitle="📄 Info Pages"
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={pages?.length || 0}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+        addBtnLabel="Add Info Page"
+        onAddClick={handleAdd}
+      >
         <table className="table table-bordered align-middle text-center table-striped">
           <thead className="table-dark">
             <tr>
-              <th>Page Name</th>
-              <th>Page URL</th>
-              <th>Actions</th>
+              <Th
+                children="Page Name"
+                sortIcon={getSortIcon("title")}
+                onClick={() => handleSort("title")}
+              />
+              <Th
+                children="Page URL"
+                sortIcon={getSortIcon("url")}
+                onClick={() => handleSort("url")}
+              />
+              <Th children="Actions" />
             </tr>
           </thead>
           <tbody>
-            {categories.map((category, idx) => (
-              <tr key={category._id}>
-                <td className="d-flex align-items-center gap-2 justify-content-start">
-                  <img
-                    src={category.category_image || images.placeholder}
-                    alt="avatar"
-                    className="rounded-circle"
-                    width="40"
-                    height="40"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = images.placeholder;
-                    }}
-                  />
-                </td>
-                <td>{category.category_name}</td>
-                <td>
-                  <i
-                    className="bi bi-pencil text-warning fs-5"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleEdit(idx)}
-                    data-bs-toggle="modal"
-                    title="Edit User"
-                  ></i>
-                  <i
-                    className="bi bi-trash text-danger fs-5 m-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleDelete(category._id)}
-                  ></i>
+            {console.log(pages)}
+            {pages.length > 0 ? (
+              pages.map((page, idx) => (
+                <tr key={page._id}>
+                  {console.log(page)}
+                  <td>{page.title}</td>
+                  <td>{page.url}</td>
+                  <td>
+                    <i
+                      className="bi bi-eye text-primary fs-5 me-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleView(idx)}
+                      title="View Page"
+                    ></i>
+                    <i
+                      className="bi bi-pencil text-warning fs-5 me-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleEdit(idx)}
+                      title="Edit Page"
+                    ></i>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="3">
+                  {searchTerm
+                    ? "No pages found matching your search"
+                    : "No pages found"}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
-      </div>
+      </Table>
 
       {/* Modal */}
       {modalType && (
         <div
           className="modal show fade d-block"
-          tabIndex="-1"
-          role="dialog"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            role="document"
-          >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {modalType === "add" ? "Add Category" : "✏️ Edit Category"}
+                  {modalType === "view"
+                    ? "👁️ View Page"
+                    : modalType === "add"
+                    ? "➕ Add Page"
+                    : "✏️ Edit Page"}
                 </h5>
                 <button
                   type="button"
@@ -272,67 +295,49 @@ export default function Page() {
                 ></button>
               </div>
               <div className="modal-body">
-                {modalType === "add" ? (
-                  <form encType="multipart/form-data">
-                    <div className="mb-3">
-                      <label className="form-label">Category Name</label>
-                      <input
-                        type="text"
-                        name="category_name"
-                        className="form-control"
-                        value={formData.category_name}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Category Image</label>
-                      <input
-                        type="file"
-                        name="category_image"
-                        className="form-control"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category_image: file,
-                            }));
-                          }
-                        }}
-                      />
-                    </div>
-                  </form>
+                {modalType === "view" ? (
+                  <div>
+                    <p>
+                      <strong>Page Name:</strong> {formData.title}
+                    </p>
+                    <p>
+                      <strong>Page URL:</strong> {formData.url}
+                    </p>
+                    <p>
+                      <strong>Description:</strong> {formData.description}
+                    </p>
+                  </div>
                 ) : (
-                  <form encType="multipart/form-data">
+                  <form>
                     <div className="mb-3">
-                      <input type="hidden" name="id" value={formData._id} />
-                      <label className="form-label">Category Name</label>
+                      <label className="form-label">Page Name</label>
                       <input
                         type="text"
-                        name="category_name"
+                        name="title"
                         className="form-control"
-                        value={formData.category_name}
+                        value={formData.title}
                         onChange={handleChange}
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label">Category Image</label>
+                      <label className="form-label">Page URL</label>
                       <input
-                        type="file"
-                        name="category_image"
+                        type="text"
+                        name="url"
                         className="form-control"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              category_image: file,
-                            }));
-                          }
-                        }}
+                        value={formData.url}
+                        onChange={handleChange}
                       />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Page Description</label>
+                      <textarea
+                        name="description"
+                        className="form-control"
+                        rows="3"
+                        value={formData.description}
+                        onChange={handleChange}
+                      ></textarea>
                     </div>
                   </form>
                 )}
@@ -345,21 +350,14 @@ export default function Page() {
                 >
                   Close
                 </button>
-                {modalType === "add" ? (
+                {modalType !== "view" && (
                   <button
+                    disabled={disabled}
                     type="button"
                     className="btn btn-primary"
                     onClick={handleSave}
                   >
-                    Save changes
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleUpdate}
-                  >
-                    Update changes
+                    Save Changes
                   </button>
                 )}
               </div>
@@ -367,6 +365,8 @@ export default function Page() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
-}
+};
+
+export default InfoPages;

@@ -14,11 +14,22 @@ const DataTable = ({
   children,
   setCurrentPage,
   currentPage,
-  totalPageCount
+  totalPageCount,
+  sortField,
+  sortOrder,
+  onSort,
+  handleAdd,
 }) => {
   return (
     <div className="container mt-4">
-      <h1 className="h4 fw-semibold mb-4">{pageTitle}</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h4 fw-semibold mb-4">{pageTitle}</h1>
+        {handleAdd && (
+          <button className="btn btn-primary" onClick={handleAdd}>
+            <i className="bi bi-plus-lg"></i> Add New
+          </button>
+        )}
+      </div>
 
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <h2 className="h4">{dataListName}</h2>
@@ -38,11 +49,44 @@ const DataTable = ({
 
       <div className="table-responsive">
         <table className="table table-hover table-bordered">
-          <thead className="table-light">
+          {/* <thead className="table-light">
             <tr>
               {tableHeaderTitleList.map((title, index) => (
                 <th key={index} scope="col">
                   {title}
+                </th>
+              ))}
+            </tr>
+          </thead> */}
+          <thead>
+            <tr>
+              {tableHeaderTitleList.map((header, idx) => (
+                <th
+                  key={idx}
+                  style={{
+                    cursor: header.field ? "pointer" : "default",
+                    color:
+                      header.field && sortField === header.field
+                        ? "#0d6efd"
+                        : "inherit",
+                  }}
+                  onClick={() => header.field && onSort(header.field)}
+                >
+                  {header.label}
+                  {header.field &&
+                    (sortField === header.field ? (
+                      <i
+                        className={`ms-1 bi ${
+                          sortOrder === "asc" ? "bi-arrow-up" : "bi-arrow-down"
+                        }`}
+                        style={{ fontSize: "0.9rem" }}
+                      ></i>
+                    ) : (
+                      <i
+                        className="ms-1 bi bi-arrow-down-up"
+                        style={{ fontSize: "0.9rem", color: "#6c757d" }}
+                      ></i>
+                    ))}
                 </th>
               ))}
             </tr>

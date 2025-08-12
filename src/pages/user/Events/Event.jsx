@@ -3,10 +3,9 @@ import DataTable from "../../../components/admin/DataTable";
 import images from "../../../contstants/images";
 import { useDataTable } from "../../../hook/useDataTable";
 import {
-  combineDateAndTime,
+  addEvent,
   dateFormatForInput,
   dateTimeFormat,
-  formatTime,
   getAllEvents,
   updateEvent,
 } from "../../../service/event/event";
@@ -32,7 +31,17 @@ function Event({ type }) {
     ticketPrice: "",
     eventImage: null,
     eventDescription: "",
+    isFreeEvent: "",
+    noOfSlots: "",
   });
+  const [sortField, setSortField] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  const handleSort = (field) => {
+    if (!field) return;
+    setSortField(field);
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  };
 
   const handleView = (index) => {
     setSelectedEvent(eventsData?.data[index]);
@@ -46,6 +55,8 @@ function Event({ type }) {
       ticketPrice: eventsData?.data[index]?.ticketPrice || "",
       eventImage: eventsData?.data[index]?.eventImage || null,
       eventDescription: eventsData?.data[index]?.eventDescription || "",
+      isFreeEvent: eventsData?.data[index]?.isFreeEvent || "",
+      noOfSlots: eventsData?.data[index]?.noOfSlots || "",
     });
     setModalType("view");
   };
@@ -53,19 +64,38 @@ function Event({ type }) {
   const handleEdit = (index) => {
     setSelectedEvent(eventsData?.data[index]);
     setFormData({
-      eventName: eventsData?.data[index]?.eventName || "",
-      eventLocation: eventsData?.data[index]?.eventLocation || "",
-      eventStartDate:
-        dateFormatForInput(eventsData?.data[index]?.eventStartDate) || "",
-      eventEndDate:
-        dateFormatForInput(eventsData?.data[index]?.eventEndDate) || "",
-      eventTimeStart: eventsData?.data[index]?.eventTimeStart || "",
-      eventTimeEnd: eventsData?.data[index]?.eventTimeEnd || "",
-      ticketPrice: eventsData?.data[index]?.ticketPrice || "",
-      eventImage: eventsData?.data[index]?.eventImage || null,
-      eventDescription: eventsData?.data[index]?.eventDescription || "",
+      eventName: eventsData?.data[index]?.eventName,
+      eventLocation: eventsData?.data[index]?.eventLocation,
+      eventStartDate: dateFormatForInput(
+        eventsData?.data[index]?.eventStartDate
+      ),
+      eventEndDate: dateFormatForInput(eventsData?.data[index]?.eventEndDate),
+      eventTimeStart: eventsData?.data[index]?.eventTimeStart,
+      eventTimeEnd: eventsData?.data[index]?.eventTimeEnd,
+      ticketPrice: eventsData?.data[index]?.ticketPrice,
+      eventImage: eventsData?.data[index]?.eventImage,
+      eventDescription: eventsData?.data[index]?.eventDescription,
+      isFreeEvent: eventsData?.data[index]?.isFreeEvent,
+      noOfSlots: eventsData?.data[index]?.noOfSlots,
     });
     setModalType("edit");
+  };
+
+  const handleAdd = () => {
+    setModalType("add");
+    setFormData({
+      eventName: "",
+      eventLocation: "",
+      eventStartDate: "",
+      eventEndDate: "",
+      eventTimeStart: "",
+      eventTimeEnd: "",
+      ticketPrice: "",
+      eventImage: null,
+      eventDescription: "",
+      isFreeEvent: "",
+      noOfSlots: "",
+    });
   };
 
   const handleCloseModal = () => {
@@ -81,16 +111,27 @@ function Event({ type }) {
       ticketPrice: "",
       eventImage: null,
       eventDescription: "",
+      isFreeEvent: "",
+      noOfSlots: "",
     });
     setModalType(null);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    if (name === "isFreeEvent") {
+      setFormData((prev) => ({
+        ...prev,
+        isFreeEvent: value,
+        ticketPrice: value === "true" ? 0 : prev.ticketPrice,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleFileChange = (e) => {
@@ -103,14 +144,13 @@ function Event({ type }) {
     }
   };
 
-  const handleUpdateEvent = async () => {
+  const handleAddEvent = async () => {
+    setDisabled(true);
     try {
-      const updatedEvent = await updateEvent(
-        userState?.userInfo?.accessToken,
-        selectedEvent?._id,
-        formData
-      );
-      toast.success("Event updated successfully");
+      // Call the Add Event API
+      const response = await addEvent(formData);
+      console.log(response);
+      toast.success(response?.message || "Event added successfully");
       queryClient.invalidateQueries(["events"]);
       handleCloseModal();
       setFormData({
@@ -124,11 +164,50 @@ function Event({ type }) {
         ticketPrice: "",
         eventImage: null,
         eventDescription: "",
+        isFreeEvent: "",
+        noOfSlots: "",
+      });
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Something Went Wrong in the Add Event"
+      );
+    } finally {
+      setDisabled(false);
+    }
+  };
+
+  const handleUpdateEvent = async () => {
+    setDisabled(true);
+    try {
+      const updatedEvent = await updateEvent(
+        userState?.userInfo?.accessToken,
+        selectedEvent?._id,
+        formData
+      );
+      toast.success(updatedEvent?.message || "Event updated successfully");
+      queryClient.invalidateQueries(["events"]);
+      handleCloseModal();
+      setFormData({
+        _id: "",
+        eventName: "",
+        eventLocation: "",
+        eventStartDate: "",
+        eventEndDate: "",
+        eventTimeStart: "",
+        eventTimeEnd: "",
+        ticketPrice: "",
+        eventImage: null,
+        eventDescription: "",
+        isFreeEvent: "",
+        noOfSlots: "",
       });
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to update event";
       toast.error(errorMessage);
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -199,9 +278,11 @@ function Event({ type }) {
         currentPage,
         10,
         searchKeyword,
-        type
+        type,
+        sortField,
+        sortOrder
       ),
-    dataQueryKey: ["events", type],
+    dataQueryKey: ["events", type, sortField, sortOrder],
     deleteDataMessage: "Event is deleted",
     mutateDeleteFn: ({ slug, token }) => {
       return deleteEvent({
@@ -221,13 +302,22 @@ function Event({ type }) {
         searchKeywordOnChangeHandler={searchKeywordHandler}
         searchKeyword={searchKeyword}
         tableHeaderTitleList={[
-          "Event Name",
-          "Event Location",
-          "Event Start",
-          "Event End",
-          "Event Status",
-          "Actions",
+          { label: "Event Name", field: "eventName" },
+          { label: "Event Location", field: "eventLocation" },
+          { label: "Event Start", field: "eventStartDate" },
+          { label: "Event End", field: "eventEndDate" },
+          { label: "No of Slots", field: "noOfSlots" },
+          { label: "Ticket Price", field: "ticketPrice" },
+          { label: "Event Status", field: "status" },
+          { label: "Actions", field: null },
         ]}
+        onSort={(field) => {
+          if (!field) return;
+          setSortField(field);
+          setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+        }}
+        sortField={sortField}
+        sortOrder={sortOrder}
         isLoading={isLoading}
         isFetching={isFetching}
         data={eventsData?.data}
@@ -235,6 +325,7 @@ function Event({ type }) {
         currentPage={currentPage}
         totalPageCount={eventsData?.total_pages}
         userState={userState}
+        handleAdd={handleAdd}
       >
         {eventsData?.data && eventsData.data.length > 0 ? (
           eventsData?.data.map((event, idx) => (
@@ -262,6 +353,16 @@ function Event({ type }) {
               <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
                 <p className="whitespace-no-wrap text-gray-900">
                   {dateTimeFormat(event?.eventEndDate, event?.eventTimeEnd)}
+                </p>
+              </td>
+              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
+                <p className="whitespace-no-wrap text-gray-900">
+                  {event?.noOfSlots}
+                </p>
+              </td>
+              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
+                <p className="whitespace-no-wrap text-gray-900">
+                  {event?.ticketPrice}
                 </p>
               </td>
               <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
@@ -312,7 +413,11 @@ function Event({ type }) {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {modalType === "view" ? "👁️ View Event" : "✏️ Edit Event"}
+                  {modalType === "view"
+                    ? "👁️ View Event"
+                    : modalType === "add"
+                    ? "➕ Add Event"
+                    : "✏️ Edit Event"}
                 </h5>
                 <button
                   type="button"
@@ -388,6 +493,35 @@ function Event({ type }) {
                                   )}
                                 </p>
                                 <p className="mb-0">
+                                  <i className="bi bi-calendar-check text-warning me-2"></i>
+                                  <strong>Ticket Price:</strong>{" "}
+                                  {`${selectedEvent?.ticketPrice} USD`}
+                                </p>
+                                <p className="mb-0">
+                                  <i className="bi bi-calendar-check text-warning me-2"></i>
+                                  <strong>No of Slots:</strong>{" "}
+                                  {`${selectedEvent?.noOfSlots} slots`}
+                                </p>
+
+                                <p className="mb-0">
+                                  <i className="bi bi-calendar-check text-warning me-2"></i>
+                                  <strong>Status:</strong>{" "}
+                                  <span
+                                    className={`badge ${
+                                      selectedEvent?.status === "approved"
+                                        ? "bg-success"
+                                        : selectedEvent?.status === "rejected"
+                                        ? "bg-danger"
+                                        : "bg-warning"
+                                    }`}
+                                  >
+                                    {CapitalizeFirstLetter(
+                                      selectedEvent?.status
+                                    )}
+                                  </span>
+                                </p>
+
+                                <p className="mb-0">
                                   <i className="bi bi-card-text text-info me-2"></i>
                                   <strong>Description:</strong>{" "}
                                   {CapitalizeFirstLetter(
@@ -399,6 +533,50 @@ function Event({ type }) {
                           </div>
                         </div>
                       </div>
+
+                      {selectedEvent?.status === "rejected" && (
+                        <div className="col-12">
+                          <div className="card mt-2">
+                            <div className="card-body">
+                              <h6 className="text-uppercase text-muted mb-0">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  x="0px"
+                                  y="0px"
+                                  width="25"
+                                  height="25"
+                                  viewBox="0 0 48 48"
+                                >
+                                  <path
+                                    fill="#f44336"
+                                    d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"
+                                  ></path>
+                                  <path
+                                    fill="#fff"
+                                    d="M29.656,15.516l2.828,2.828l-14.14,14.14l-2.828-2.828L29.656,15.516z"
+                                  ></path>
+                                  <path
+                                    fill="#fff"
+                                    d="M32.484,29.656l-2.828,2.828l-14.14-14.14l2.828-2.828L32.484,29.656z"
+                                  ></path>
+                                </svg>{" "}
+                                Rejection Reason
+                              </h6>
+                              {selectedEvent?.rejectionReason ? (
+                                <p className="mb-0">
+                                  {CapitalizeFirstLetter(
+                                    selectedEvent?.rejectionReason
+                                  )}
+                                </p>
+                              ) : (
+                                <p className="mb-0 text-muted">
+                                  No rejection reason provided.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="row">
@@ -515,7 +693,7 @@ function Event({ type }) {
                       </div>
                     </div>
                   </div>
-                ) : (
+                ) : modalType === "edit" ? (
                   <form>
                     <div className="row">
                       <div className="col-md-6">
@@ -593,12 +771,41 @@ function Event({ type }) {
 
                       <div className="col-md-6">
                         <div className="mb-3">
+                          <label htmlFor="isFreeEvent">Free Event</label>
+                          <select
+                            name="isFreeEvent"
+                            id="isFreeEvent"
+                            className="form-select"
+                            value={formData?.isFreeEvent || false}
+                            onChange={handleChange}
+                          >
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <div className="mb-3">
                           <label className="form-label">Ticket Price</label>
                           <input
                             type="number"
                             name="ticketPrice"
                             className="form-control"
-                            value={formData?.ticketPrice || ""}
+                            value={formData?.ticketPrice ?? 0}
+                            onChange={handleChange}
+                            disabled={formData?.isFreeEvent === "true"}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">No of Slots</label>
+                          <input
+                            type="number"
+                            name="noOfSlots"
+                            className="form-control"
+                            value={formData?.noOfSlots || ""}
                             onChange={handleChange}
                           />
                         </div>
@@ -630,7 +837,151 @@ function Event({ type }) {
                       </div>
                     </div>
                   </form>
-                )}
+                ) : modalType === "add" ? (
+                  <form>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event Name</label>
+                          <input
+                            type="text"
+                            name="eventName"
+                            className="form-control"
+                            value={formData?.eventName || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event Location</label>
+                          <input
+                            type="text"
+                            name="eventLocation"
+                            className="form-control"
+                            value={formData?.eventLocation || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event Start Date</label>
+                          <input
+                            type="date"
+                            name="eventStartDate"
+                            className="form-control"
+                            value={formData?.eventStartDate || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event End Date</label>
+                          <input
+                            type="date"
+                            name="eventEndDate"
+                            className="form-control"
+                            value={formData?.eventEndDate || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event Start Time</label>
+                          <input
+                            type="time"
+                            name="eventTimeStart"
+                            className="form-control"
+                            value={formData?.eventTimeStart || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event End Time</label>
+                          <input
+                            type="time"
+                            name="eventTimeEnd"
+                            className="form-control"
+                            value={formData?.eventTimeEnd || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Free Event</label>
+                          <select
+                            name="isFreeEvent"
+                            id="isFreeEvent"
+                            className="form-select"
+                            value={formData?.isFreeEvent || false}
+                            onChange={handleChange}
+                          >
+                            <option value="">Select</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Ticket Price</label>
+                          <input
+                            type="number"
+                            name="ticketPrice"
+                            className="form-control"
+                            value={formData?.ticketPrice || ""}
+                            onChange={handleChange}
+                            disabled={formData?.isFreeEvent === "true"}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">No of Slots</label>
+                          <input
+                            type="number"
+                            name="noOfSlots"
+                            className="form-control"
+                            value={formData?.noOfSlots || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Event Image</label>
+                          <input
+                            type="file"
+                            name="eventImage"
+                            className="form-control"
+                            onChange={handleFileChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-12">
+                        <div className="mb-3">
+                          <label htmlFor="eventDescription">
+                            Event Description
+                          </label>
+                          <textarea
+                            id="eventDescription"
+                            name="eventDescription"
+                            className="form-control"
+                            value={formData?.eventDescription || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                ) : null}
               </div>
               <div className="modal-footer">
                 <button
@@ -640,13 +991,23 @@ function Event({ type }) {
                 >
                   Close
                 </button>
-                {modalType === "edit" && (
+                {modalType === "edit" ? (
                   <button
                     type="button"
                     className="btn btn-primary"
+                    disabled={disabled}
                     onClick={handleUpdateEvent}
                   >
                     Save Changes
+                  </button>
+                ) : modalType === "add" &&  (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={disabled}
+                    onClick={handleAddEvent}
+                  >
+                    Add Event
                   </button>
                 )}
               </div>

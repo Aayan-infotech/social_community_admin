@@ -129,11 +129,11 @@ export const sidebarConfig = {
                     label: 'FAQ',
                     url: '/admin/faqs',
                 },
-                {
-                    id: 'contact',
-                    label: 'Contact Us',
-                    url: '/admin/contact',
-                }
+                // {
+                //     id: 'contact',
+                //     label: 'Contact Us',
+                //     url: '/admin/contact',
+                // }
             ]
         }
     ],
@@ -147,40 +147,36 @@ export const sidebarConfig = {
             type: 'single'
         },
         {
-            id: 'myEvents',
-            label: 'My Events',
-            url: '/user/events',
-            icon: 'bi-calendar-date',
-            type: 'single'
-        },
-        {
-            id: 'upcomingEvents',
-            label: 'Upcoming Events',
-            url: '/user/upcoming-events',
-            icon: 'bi-calendar2-heart',
-            type: 'single'
-        },
-        {
-            id: 'pastEvents',
+            id: 'eventManagement',
+            label: "Event Management",
+            icon: 'bi-calendar-event',
+            type: 'dropdown',
+            children: [
+                {
+                    id: 'myEvents',
+                    label: 'My Events',
+                    url: '/user/events',
+                },
+                {
+                    id: 'upcomingEvents',
+                    label: 'Upcoming Events',
+                    url: '/user/upcoming-events',
+                },
+                {
+                    id: 'pastEvents',
             label: 'Past Events',
             url: '/user/past-events',
-            icon: 'bi-calendar3-event',
-            type: 'single'
-        },
-        {
-            id: 'bookedTickets',
+                },{
+ id: 'bookedTickets',
             label: 'Booked Tickets',
             url: '/user/booked-tickets',
-            icon: 'bi-calendar-check',
-            type: 'single'
+                },{
+                    id: 'cancelledTickets',
+                    label: 'Cancelled Tickets',
+                    url: '/user/cancelled-tickets',
+                }
+            ]
         },
-        {
-            id: 'cancelledTickets',
-            label: 'Cancelled Tickets',
-            url: '/user/cancelled-tickets',
-            icon: 'bi-calendar-x',
-            type: 'single'
-        }
     ],
 
     vendor: [
@@ -192,33 +188,60 @@ export const sidebarConfig = {
             type: 'single'
         },
         {
-            id: 'orders',
-            label: 'Orders',
-            url: '/user/orders',
-            icon: 'bi-calendar-date',
-            type: 'single'
+            id: 'vendorMarketplace',
+            label: 'MarketPlace',
+            icon: 'bi-grid-1x2-fill',
+            type: 'dropdown',
+            children: [
+                // {
+                //     id: 'allProducts',
+                //     label: 'All Products',
+                //     url: '/user/products',
+                // },
+                {
+                    id: 'orders',
+                    label: 'Orders',
+                    url: '/user/orders',
+                },
+                {
+                    id: 'placeOrders',
+                    label: 'Place Orders',
+                    url: '/user/place-orders',
+                },
+                {
+                    id: 'completedOrders',
+                    label: 'Completed Orders',
+                    url: '/user/completed-orders',
+                },
+                {
+                    id: 'cancelledOrders',
+                    label: 'Cancelled Orders',
+                    url: '/user/cancelled-orders',
+                }
+            ]
         },
-        {
-            id: 'placeOrders',
-            label: 'Place Orders',
-            url: '/user/place-orders',
-            icon: 'bi-calendar4-event',
-            type: 'single'
-        },
-        {
-            id: 'completedOrders',
-            label: 'Completed Orders',
-            url: '/user/completed-orders',
-            icon: 'bi-calendar-check',
-            type: 'single'
-        },
-        {
-            id: 'cancelledOrders',
-            label: 'Cancelled Orders',
-            url: '/user/cancelled-orders',
-            icon: 'bi-calendar-x',
-            type: 'single'
-        }
+        // {
+
+        //     icon: 'bi-calendar-date',
+        //     type: ''
+        // },
+        // {
+
+        //     icon: 'bi-calendar4-event',
+        //     type: 'single'
+        // },
+        // {
+        //    
+        //     icon: 'bi-calendar-check',
+        //     type: 'single'
+        // },
+        // {
+        //     id: 'cancelledOrders',
+        //     label: 'Cancelled Orders',
+        //     url: '/user/cancelled-orders',
+        //     icon: 'bi-calendar-x',
+        //     type: 'single'
+        // }
     ]
 };
 
