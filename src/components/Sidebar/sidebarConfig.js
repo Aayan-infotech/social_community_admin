@@ -76,6 +76,11 @@ export const sidebarConfig = {
                     url: '/admin/all-products',
                 },
                 {
+                    id: 'productManagement',
+                    label: 'Product Management',
+                    url: '/admin/product-management',
+                },
+                {
                     id: 'productOrders',
                     label: 'Product Orders',
                     url: '/admin/product-orders',
@@ -193,14 +198,14 @@ export const sidebarConfig = {
             icon: 'bi-grid-1x2-fill',
             type: 'dropdown',
             children: [
-                // {
-                //     id: 'allProducts',
-                //     label: 'All Products',
-                //     url: '/user/products',
-                // },
+                {
+                    id: 'productManagement',
+                    label: 'Product Management',
+                    url: '/user/product-management',
+                },
                 {
                     id: 'orders',
-                    label: 'Orders',
+                    label: 'All Orders',
                     url: '/user/orders',
                 },
                 {
