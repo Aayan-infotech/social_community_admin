@@ -75,11 +75,11 @@ export const sidebarConfig = {
                     label: 'All Products',
                     url: '/admin/all-products',
                 },
-                {
-                    id: 'productManagement',
-                    label: 'Product Management',
-                    url: '/admin/product-management',
-                },
+                // {
+                //     id: 'productManagement',
+                //     label: 'Product Management',
+                //     url: '/admin/product-management',
+                // },
                 {
                     id: 'productOrders',
                     label: 'Product Orders',
@@ -169,13 +169,13 @@ export const sidebarConfig = {
                 },
                 {
                     id: 'pastEvents',
-            label: 'Past Events',
-            url: '/user/past-events',
-                },{
- id: 'bookedTickets',
-            label: 'Booked Tickets',
-            url: '/user/booked-tickets',
-                },{
+                    label: 'Past Events',
+                    url: '/user/past-events',
+                }, {
+                    id: 'bookedTickets',
+                    label: 'Booked Tickets',
+                    url: '/user/booked-tickets',
+                }, {
                     id: 'cancelledTickets',
                     label: 'Cancelled Tickets',
                     url: '/user/cancelled-tickets',
