@@ -600,24 +600,12 @@ const ProductManagement = () => {
             <strong>Subcategory:</strong>{" "}
             {CapitalizeFirstLetter(selectedProduct.subcategory_name)}
           </p>
-          <div className="col-md-6 mb-3">
-            <label htmlFor="product_quantity" className="form-label">
-              Quantity <span className="text-danger">*</span>
-            </label>
-            <input
-              type="number"
-              className="form-control"
-              id="product_quantity"
-              name="product_quantity"
-              value={productForm.product_quantity}
-              onChange={handleFormChange}
-              min="1"
-              step="1"
-              required
-            />
-          </div>
+          <p></p>
           <p>
-            <strong>Price:</strong> ${selectedProduct.product_price}
+            <strong>Quantity:</strong> {selectedProduct.product_quantity}
+          </p>
+          <p>
+            <strong>Price:</strong> <span className="text-decoration-line-through">${selectedProduct.product_price}</span> <span className="text-success">${(selectedProduct.product_price - (selectedProduct.product_price * selectedProduct.product_discount / 100)).toFixed(2)}</span>
           </p>
           <p>
             <strong>Discount:</strong> {selectedProduct.product_discount}%

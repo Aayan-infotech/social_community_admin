@@ -46,7 +46,8 @@ export default function Topbar() {
     localStorage.clear();
     dispatch(userActions.setUserInfo(null));
     toast.success("Logout successful!");
-    setTimeout(() => navigate("/"), 1600);
+    navigate("/")
+    // setTimeout(() => navigate("/"), 1600);
   };
 
   const currentPasswordRef = useRef(null);

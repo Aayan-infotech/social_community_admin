@@ -70,7 +70,8 @@ const ProductOrder = ({ type = "" }) => {
       }
     } catch (err) {
       console.error("Error fetching orders:", err);
-      toast.error(err.response?.data?.message || "Failed to fetch orders");
+
+      // toast.error(err.response?.data?.message || "Failed to fetch orders");
     } finally {
       setLoading(false);
     }
@@ -193,9 +194,9 @@ const ProductOrder = ({ type = "" }) => {
                 onClick={() => handleSort("totalProducts")}
               />
               <Th
-                children="Buyer Name"
-                sortIcon={getSortIcon("buyerName")}
-                onClick={() => handleSort("buyerName")}
+                children="Status"
+                sortIcon={getSortIcon("status")}
+                onClick={() => handleSort("status")}
               />
               <Th
                 children="Payment Status"
@@ -214,7 +215,22 @@ const ProductOrder = ({ type = "" }) => {
                   <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td>${order.totalAmount}</td>
                   <td>{order.totalProducts}</td>
-                  <td>{order.buyer?.name || "N/A"}</td>
+                  <td>
+                    {" "}
+                    <span
+                      className={`badge bg-${
+                        order?.status === "delivered"
+                          ? "success"
+                          : order?.status === "placed"
+                          ? "info"
+                          : order?.status === "cancelled"
+                          ? "danger"
+                          : "warning"
+                      }`}
+                    >
+                      {CapitalizeFirstLetter(order?.status)}
+                    </span>
+                  </td>
                   <td>
                     <span
                       className={`badge bg-${

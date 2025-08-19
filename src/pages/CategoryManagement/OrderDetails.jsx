@@ -192,7 +192,7 @@ const OrderDetails = () => {
                 <ul className="list-group">
                   <li className="list-group-item">
                     <img
-                      src={item?.product?.image[0]}
+                      src={item?.product?.product_image[0]}
                       alt="Product"
                       className="img-fluid"
                       style={{
@@ -204,7 +204,7 @@ const OrderDetails = () => {
                   <li className="list-group-item p-2 text-left d-flex">
                     <span className="w-50 d-block pr-2"> Product Name </span>
                     <span className="w-50 h-100 text-primary d-block">
-                      {item?.product?.name}
+                      {item?.product?.product_name}
                     </span>
                   </li>
                   <li className="list-group-item p-2 text-left d-flex">
@@ -298,6 +298,37 @@ const OrderDetails = () => {
           </tr>
         </tbody>
       </table>
+
+      {/* Seller Details Table  */}
+      {role.includes("admin") && (
+        <table className="table table-bordered mb-4">
+          <thead>
+            <tr>
+              <th colSpan="2" className="bg-primary text-white text-center">
+                Seller Details
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Full Name</th>
+              <td>{order.seller?.name}</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td>{order.seller?.email}</td>
+            </tr>
+            <tr>
+              <th>Mobile</th>
+              <td>{order.seller?.mobile || "N/A"}</td>
+            </tr>
+            <tr>
+              <th>Address</th>
+              <td>{order.seller?.address}</td>
+            </tr>
+          </tbody>
+        </table>
+      )}
 
       {/* Manage Status Form */}
 
