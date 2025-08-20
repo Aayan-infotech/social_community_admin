@@ -314,7 +314,8 @@ const ProductManagement = () => {
 
     // Create preview URLs
     const previewUrls = files.map((file) => URL.createObjectURL(file));
-    setImagePreview(previewUrls);
+    // In edit mode, append to existing previews
+    setImagePreview((prev) => [...prev, ...previewUrls]);
   };
 
   const removeImage = (index) => {

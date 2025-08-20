@@ -1,13 +1,14 @@
 import axios from "axios";
 
-export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "", type = "all",sortField = "eventStartDate", // default sort
-  sortOrder = "desc") => {
+export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "", type = "all", sortField = "eventStartDate", // default sort
+    sortOrder = "desc") => {
     try {
         const { data } = await axios.get(
             `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}&type=${type}&sortField=${sortField}&sortOrder=${sortOrder}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                 },
             }
         );
@@ -51,7 +52,7 @@ export const updateEvent = async (token, id, formData) => {
             }
         );
 
-        console.log(data , "data"); 
+        console.log(data, "data");
 
         return data;
     } catch (error) {
