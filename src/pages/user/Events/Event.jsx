@@ -63,6 +63,7 @@ function Event({ type }) {
 
   const handleEdit = (index) => {
     setSelectedEvent(eventsData?.data[index]);
+    console.log(eventsData?.data[index]);
     setFormData({
       eventName: eventsData?.data[index]?.eventName,
       eventLocation: eventsData?.data[index]?.eventLocation,
@@ -148,7 +149,7 @@ function Event({ type }) {
     setDisabled(true);
     try {
       // Call the Add Event API
-      formData.isFreeEvent = formData.isFreeEvent === "true";
+      // formData.isFreeEvent = formData.isFreeEvent === "true";
       const response = await addEvent(formData);
       console.log(response);
       toast.success(response?.message || "Event added successfully");
@@ -326,7 +327,7 @@ function Event({ type }) {
         currentPage={currentPage}
         totalPageCount={eventsData?.total_pages}
         userState={userState}
-        handleAdd={handleAdd}
+        handleAdd={type !== "upcoming" && type !== "past" ? handleAdd : null}
       >
         {eventsData?.data && eventsData.data.length > 0 ? (
           eventsData?.data.map((event, idx) => (
@@ -777,7 +778,7 @@ function Event({ type }) {
                             name="isFreeEvent"
                             id="isFreeEvent"
                             className="form-select"
-                            value={formData?.isFreeEvent || ""}
+                            value={formData?.isFreeEvent || false}
                             onChange={handleChange}
                           >
                             <option value="">Select</option>
@@ -925,7 +926,9 @@ function Event({ type }) {
                             value={formData?.isFreeEvent || ""}
                             onChange={handleChange}
                           >
-                            <option value="" selected>Select</option>
+                            <option value="">
+                              Select
+                            </option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                           </select>
@@ -1002,15 +1005,17 @@ function Event({ type }) {
                   >
                     Save Changes
                   </button>
-                ) : modalType === "add" &&  (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={disabled}
-                    onClick={handleAddEvent}
-                  >
-                    Add Event
-                  </button>
+                ) : (
+                  modalType === "add" && (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      disabled={disabled}
+                      onClick={handleAddEvent}
+                    >
+                      Add Event
+                    </button>
+                  )
                 )}
               </div>
             </div>
