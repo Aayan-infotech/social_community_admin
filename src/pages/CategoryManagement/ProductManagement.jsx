@@ -42,6 +42,7 @@ const ProductManagement = () => {
   });
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
+  const [removedImages, setRemovedImages] = useState([]);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 1000);
 
@@ -234,6 +235,7 @@ const ProductManagement = () => {
       product_image: product.product_image || [],
     });
     setImagePreview(product.product_image || []);
+    setRemovedImages([]);
 
     // Fetch subcategories for the selected category
     if (product.category_id) {
@@ -245,35 +247,35 @@ const ProductManagement = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (product) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: `You want to delete "${product.product_name}"! This action cannot be undone.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await axios.delete(
-            `marketplace/delete-product/${product._id}`
-          );
-          if (response.data.success) {
-            toast.success("Product deleted successfully");
-            fetchProducts();
-          } else {
-            toast.error(response.data.message || "Failed to delete product");
-          }
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || "Failed to delete product"
-          );
-        }
-      }
-    });
-  };
+  // const handleDelete = (product) => {
+  //   Swal.fire({
+  //     title: "Are you sure?",
+  //     text: `You want to delete "${product.product_name}"! This action cannot be undone.`,
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#d33",
+  //     cancelButtonColor: "#3085d6",
+  //     confirmButtonText: "Yes, delete it!",
+  //   }).then(async (result) => {
+  //     if (result.isConfirmed) {
+  //       try {
+  //         const response = await axios.delete(
+  //           `marketplace/delete-product/${product._id}`
+  //         );
+  //         if (response.data.success) {
+  //           toast.success("Product deleted successfully");
+  //           fetchProducts();
+  //         } else {
+  //           toast.error(response.data.message || "Failed to delete product");
+  //         }
+  //       } catch (error) {
+  //         toast.error(
+  //           error.response?.data?.message || "Failed to delete product"
+  //         );
+  //       }
+  //     }
+  //   });
+  // };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -318,6 +320,8 @@ const ProductManagement = () => {
   const removeImage = (index) => {
     const newFiles = imageFiles.filter((_, i) => i !== index);
     const newPreviews = imagePreview.filter((_, i) => i !== index);
+    const removedImageUrls = imagePreview.filter((_, i) => i === index);
+    setRemovedImages((prev) => [...prev, ...removedImageUrls]);
     setImageFiles(newFiles);
     setImagePreview(newPreviews);
   };
@@ -339,6 +343,10 @@ const ProductManagement = () => {
       }
       if (!productForm.product_quantity || Number(productForm.product_quantity) <= 1) {
         toast.error("Quantity is required and must be greater than 1");
+        return;
+      }
+      if(!productForm.product_discount || productForm.product_discount < 0 || productForm.product_discount > 100) {
+        toast.error("Discount must be between 0 and 100");
         return;
       }
       if (!productForm.category_id) {
@@ -372,8 +380,13 @@ const ProductManagement = () => {
           },
         });
       } else if (modalType === "edit") {
+
+        formData.append("id", selectedProduct._id);
+        formData.append("remove_images", JSON.stringify(removedImages));
+
+
         response = await axios.put(
-          `marketplace/update-product/${selectedProduct._id}`,
+          `marketplace/update-product`,
           formData,
           {
             headers: {
@@ -731,12 +744,12 @@ const ProductManagement = () => {
                         title="Edit Product"
                       ></i>
 
-                      <i
+                      {/* <i
                         className="bi bi-trash text-danger fs-5"
                         style={{ cursor: "pointer" }}
                         onClick={() => handleDelete(product)}
                         title="Delete Product"
-                      ></i>
+                      ></i> */}
                     </div>
                   </td>
                 </tr>

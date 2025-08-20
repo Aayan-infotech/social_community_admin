@@ -148,6 +148,7 @@ function Event({ type }) {
     setDisabled(true);
     try {
       // Call the Add Event API
+      formData.isFreeEvent = formData.isFreeEvent === "true";
       const response = await addEvent(formData);
       console.log(response);
       toast.success(response?.message || "Event added successfully");
@@ -776,9 +777,10 @@ function Event({ type }) {
                             name="isFreeEvent"
                             id="isFreeEvent"
                             className="form-select"
-                            value={formData?.isFreeEvent || false}
+                            value={formData?.isFreeEvent || ""}
                             onChange={handleChange}
                           >
+                            <option value="">Select</option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                           </select>
@@ -920,10 +922,10 @@ function Event({ type }) {
                             name="isFreeEvent"
                             id="isFreeEvent"
                             className="form-select"
-                            value={formData?.isFreeEvent || false}
+                            value={formData?.isFreeEvent || ""}
                             onChange={handleChange}
                           >
-                            <option value="">Select</option>
+                            <option value="" selected>Select</option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                           </select>
