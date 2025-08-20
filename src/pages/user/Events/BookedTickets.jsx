@@ -65,9 +65,9 @@ function BookedTickets() {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
     }).format(amount);
   };
 
@@ -115,13 +115,13 @@ function BookedTickets() {
           searchInputPlaceHolder=""
           hideSearch
           tableHeaderTitleList={[
-            "Ticket ID",
-            "Buyer Name",
-            "Email",
-            "Tickets",
-            "Booking Time",
-            "Status",
-            "Actions",
+            { label: "Ticket ID", field: "ticketId" },
+            { label: "Buyer Name", field: "userDetails.name" },
+            { label: "Email", field: "userDetails.email" },
+            { label: "Tickets", field: "ticketCount" },
+            { label: "Booking Time", field: "bookingDate" },
+            { label: "Status", field: "bookingStatus" },
+            { label: "Actions", field: null },
           ]}
           isLoading={isLoading}
           isFetching={isFetching}
@@ -142,7 +142,8 @@ function BookedTickets() {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
-                  })}{" "} - { formatTime(ticket?.bookingTime) }
+                  })}{" "}
+                  - {formatTime(ticket?.bookingTime)}
                 </td>
                 <td>
                   <span
@@ -195,9 +196,7 @@ function BookedTickets() {
           >
             <div className="modal-content">
               <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title">
-                  🎟️ Ticket Details
-                </h5>
+                <h5 className="modal-title">🎟️ Ticket Details</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -236,7 +235,10 @@ function BookedTickets() {
                                     src={selectedTicket.eventDetails.eventImage}
                                     alt="Event"
                                     className="img-fluid rounded"
-                                    style={{ maxHeight: "150px", objectFit: "cover" }}
+                                    style={{
+                                      maxHeight: "150px",
+                                      objectFit: "cover",
+                                    }}
                                   />
                                 </div>
                               )}
@@ -246,15 +248,28 @@ function BookedTickets() {
                                 </h5>
                                 <p className="mb-2">
                                   <i className="fas fa-map-marker-alt text-danger me-2"></i>
-                                  <strong>Location:</strong> {selectedTicket?.eventDetails?.eventLocation}
+                                  <strong>Location:</strong>{" "}
+                                  {selectedTicket?.eventDetails?.eventLocation}
                                 </p>
                                 <p className="mb-2">
                                   <i className="fas fa-calendar-alt text-success me-2"></i>
-                                  <strong>Start:</strong> {formatDateTime(selectedTicket?.eventDetails?.eventStartDate)} {" "} {formatTime(selectedTicket?.eventDetails?.eventStartTime)}
+                                  <strong>Start:</strong>{" "}
+                                  {formatDateTime(
+                                    selectedTicket?.eventDetails?.eventStartDate
+                                  )}{" "}
+                                  {formatTime(
+                                    selectedTicket?.eventDetails?.eventStartTime
+                                  )}
                                 </p>
                                 <p className="mb-0">
                                   <i className="fas fa-calendar-check text-warning me-2"></i>
-                                  <strong>End:</strong> {formatDateTime(selectedTicket?.eventDetails?.eventEndDate)} {" "} {formatTime(selectedTicket?.eventDetails?.eventEndTime)}
+                                  <strong>End:</strong>{" "}
+                                  {formatDateTime(
+                                    selectedTicket?.eventDetails?.eventEndDate
+                                  )}{" "}
+                                  {formatTime(
+                                    selectedTicket?.eventDetails?.eventEndTime
+                                  )}
                                 </p>
                               </div>
                             </div>
@@ -277,25 +292,37 @@ function BookedTickets() {
                                   src={selectedTicket.userDetails.profile_image}
                                   alt="Profile"
                                   className="rounded-circle me-3"
-                                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                                  style={{
+                                    width: "50px",
+                                    height: "50px",
+                                    objectFit: "cover",
+                                  }}
                                 />
                               )}
                               <div>
-                                <h6 className="mb-0">{selectedTicket?.userDetails?.name}</h6>
+                                <h6 className="mb-0">
+                                  {selectedTicket?.userDetails?.name}
+                                </h6>
                                 <small className="text-muted">Customer</small>
                               </div>
                             </div>
                             <div className="mb-2">
                               <i className="fas fa-envelope text-primary me-2"></i>
-                              <small>{selectedTicket?.userDetails?.email}</small>
+                              <small>
+                                {selectedTicket?.userDetails?.email}
+                              </small>
                             </div>
                             <div className="mb-2">
                               <i className="fas fa-phone text-success me-2"></i>
-                              <small>{selectedTicket?.userDetails?.mobile}</small>
+                              <small>
+                                {selectedTicket?.userDetails?.mobile}
+                              </small>
                             </div>
                             <div>
                               <i className="fas fa-user text-info me-2"></i>
-                              <small>ID: {selectedTicket?.userDetails?.userId}</small>
+                              <small>
+                                ID: {selectedTicket?.userDetails?.userId}
+                              </small>
                             </div>
                           </div>
                         </div>
@@ -311,29 +338,42 @@ function BookedTickets() {
                             <div className="row mb-3">
                               <div className="col-6">
                                 <div className="text-center">
-                                  <h4 className="text-primary mb-1">{selectedTicket?.ticketCount}</h4>
+                                  <h4 className="text-primary mb-1">
+                                    {selectedTicket?.ticketCount}
+                                  </h4>
                                   <small className="text-muted">Tickets</small>
                                 </div>
                               </div>
                               <div className="col-6">
                                 <div className="text-center">
-                                  <h4 className="text-success mb-1">{formatCurrency(selectedTicket?.totalPrice)}</h4>
-                                  <small className="text-muted">Total Price</small>
+                                  <h4 className="text-success mb-1">
+                                    {formatCurrency(selectedTicket?.totalPrice)}
+                                  </h4>
+                                  <small className="text-muted">
+                                    Total Price
+                                  </small>
                                 </div>
                               </div>
                             </div>
                             <div className="mb-2">
                               <i className="fas fa-calendar text-primary me-2"></i>
-                              <small><strong>Booked:</strong> {formatDateTime(selectedTicket?.bookingDate)} {" "} {formatTime(selectedTicket?.bookingTime)}</small>
+                              <small>
+                                <strong>Booked:</strong>{" "}
+                                {formatDateTime(selectedTicket?.bookingDate)}{" "}
+                                {formatTime(selectedTicket?.bookingTime)}
+                              </small>
                             </div>
                             <div className="mb-2">
                               <span className="me-2">📊</span>
-                              <small><strong>Booking Status:</strong></small>
+                              <small>
+                                <strong>Booking Status:</strong>
+                              </small>
                               <span
                                 className={`badge ms-2 ${
                                   selectedTicket?.bookingStatus === "booked"
                                     ? "bg-success"
-                                    : selectedTicket?.bookingStatus === "pending"
+                                    : selectedTicket?.bookingStatus ===
+                                      "pending"
                                     ? "bg-warning"
                                     : "bg-danger"
                                 }`}
@@ -343,12 +383,15 @@ function BookedTickets() {
                             </div>
                             <div>
                               <span className="me-2">💳</span>
-                              <small><strong>Payment Status:</strong></small>
+                              <small>
+                                <strong>Payment Status:</strong>
+                              </small>
                               <span
                                 className={`badge ms-2 ${
                                   selectedTicket?.paymentStatus === "paid"
                                     ? "bg-success"
-                                    : selectedTicket?.paymentStatus === "pending"
+                                    : selectedTicket?.paymentStatus ===
+                                      "pending"
                                     ? "bg-warning"
                                     : "bg-danger"
                                 }`}
@@ -372,21 +415,27 @@ function BookedTickets() {
                                   <i className="fas fa-hashtag text-primary fs-4"></i>
                                 </div>
                                 <h6 className="mb-1">Booking ID</h6>
-                                <small className="text-muted">{selectedTicket?._id}</small>
+                                <small className="text-muted">
+                                  {selectedTicket?._id}
+                                </small>
                               </div>
                               <div className="col-md-3">
                                 <div className="mb-2">
                                   <i className="fas fa-calendar-plus text-success fs-4"></i>
                                 </div>
                                 <h6 className="mb-1">Event ID</h6>
-                                <small className="text-muted">{selectedTicket?.eventId}</small>
+                                <small className="text-muted">
+                                  {selectedTicket?.eventId}
+                                </small>
                               </div>
                               <div className="col-md-3">
                                 <div className="mb-2">
                                   <i className="fas fa-user-tag text-info fs-4"></i>
                                 </div>
                                 <h6 className="mb-1">User ID</h6>
-                                <small className="text-muted">{selectedTicket?.userId}</small>
+                                <small className="text-muted">
+                                  {selectedTicket?.userId}
+                                </small>
                               </div>
                               <div className="col-md-3">
                                 <div className="mb-2">
@@ -394,7 +443,10 @@ function BookedTickets() {
                                 </div>
                                 <h6 className="mb-1">Per Ticket</h6>
                                 <small className="text-muted">
-                                  {formatCurrency(selectedTicket?.totalPrice / selectedTicket?.ticketCount)}
+                                  {formatCurrency(
+                                    selectedTicket?.totalPrice /
+                                      selectedTicket?.ticketCount
+                                  )}
                                 </small>
                               </div>
                             </div>

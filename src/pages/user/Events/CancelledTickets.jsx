@@ -76,7 +76,7 @@ function CancelledTickets() {
           </div>
         </div>
       </div>
-     
+
       {selectedEvent ? (
         <DataTable
           pageTitle={`Tickets for "${selectedEvent?.label}"`}
@@ -84,13 +84,13 @@ function CancelledTickets() {
           searchInputPlaceHolder=""
           hideSearch
           tableHeaderTitleList={[
-            "Ticket ID",
-            "Buyer Name",
-            "Email",
-            "Tickets",
-            "Booking Time",
-            "Status",
-            "Actions",
+            { label: "Ticket ID", field: "ticketId" },
+            { label: "Buyer Name", field: "userDetails.name" },
+            { label: "Email", field: "userDetails.email" },
+            { label: "Tickets", field: "ticketCount" },
+            { label: "Booking Time", field: "bookingDate" },
+            { label: "Status", field: "bookingStatus" },
+            { label: "Actions", field: null },
           ]}
           isLoading={isLoading}
           isFetching={isFetching}
