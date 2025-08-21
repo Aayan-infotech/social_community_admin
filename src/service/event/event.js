@@ -1,22 +1,24 @@
 import axios from "axios";
 
-export const getAllEvents = async (token, page = 1, limit = 10, searchKeyword = "", type = "all", sortField = "eventStartDate", // default sort
-    sortOrder = "desc") => {
+export const getAllEvents = async (page = 1, limit = 10, searchKeyword = "", type = "all", sortField = "eventStartDate", // default sort
+    sortOrder = "desc", statusFilter = "") => {
     try {
         const { data } = await axios.get(
-            `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}&type=${type}&sortField=${sortField}&sortOrder=${sortOrder}`,
+            `virtual-events/my-events?page=${page}&limit=${limit}&searchKeyword=${searchKeyword}&type=${type}&sortField=${sortField}&sortOrder=${sortOrder}&statusFilter=${statusFilter}`,
             {
                 headers: {
-                    Authorization: `Bearer ${token}`,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                 },
             }
         );
 
-        const total_records = data?.data?.total_records;
-        const total_pages = data?.data?.total_page;
-
-        return { data: data?.data?.virtualEvents, total_pages };
+        return {
+            success: data?.success,
+            data: data?.data?.virtualEvents || [],
+            current_page: data?.data?.current_page || 1,
+            total_pages: data?.data?.total_page || 1,
+            total_records: data?.data?.total_records || 0,
+        };
     } catch (error) {
         console.error("Error fetching events:", error);
         throw error;
@@ -39,20 +41,17 @@ export const formatTime = (timeStr) => {
 };
 
 
-export const updateEvent = async (token, id, formData) => {
+export const updateEvent = async (id, formData) => {
     try {
         const { data } = await axios.put(
             `virtual-events/update/${id}`,
             formData,
             {
                 headers: {
-                    Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",
                 },
             }
         );
-
-        console.log(data, "data");
 
         return data;
     } catch (error) {
@@ -73,18 +72,11 @@ export const dateFormatForInput = (dateString) => {
 };
 
 
-export const getEventDropdownOptions = async (token) => {
+export const getEventDropdownOptions = async () => {
     try {
-        if (!token) {
-            throw new Error("Authorization token is required");
-        }
+
         const { data } = await axios.get(
             `virtual-events/getEventDropdown`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
         );
 
         return data?.data || [];
@@ -94,13 +86,9 @@ export const getEventDropdownOptions = async (token) => {
     }
 };
 
-export const getBookedTicketsByEventId = async (token, eventId, page = 1, limit = 10, sortField = "createdAt", sortOrder = "desc") => {
+export const getBookedTicketsByEventId = async (event, page = 1, limit = 10, sortField = "createdAt", sortOrder = "desc") => {
     try {
-        const { data } = await axios.get(`virtual-events/getAllTickets/${eventId}?page=${page}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        const { data } = await axios.get(`virtual-events/getAllTickets/${event.value}?page=${page}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`);
         return data?.data || [];
 
     } catch (error) {
@@ -109,16 +97,10 @@ export const getBookedTicketsByEventId = async (token, eventId, page = 1, limit 
     }
 };
 
-export const getCancelledTicketsByEventId = async (token, eventId, page = 1, limit = 10) => {
+export const getCancelledTicketsByEventId = async (eventId, page = 1, limit = 10) => {
     try {
-        // if (!eventId && eventId != 'undefined') {
-        const { data } = await axios.get(`virtual-events/getCancelledTickets/${eventId}?page=${page}&limit=${limit}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        const { data } = await axios.get(`virtual-events/getCancelledTickets/${eventId.value}?page=${page}&limit=${limit}`);
         return data?.data || [];
-        // }
     } catch (error) {
         console.error("Error fetching cancelled tickets by event ID:", error);
         throw error;

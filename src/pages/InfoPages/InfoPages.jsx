@@ -236,11 +236,9 @@ const InfoPages = () => {
             </tr>
           </thead>
           <tbody>
-            {console.log(pages)}
             {pages.length > 0 ? (
               pages.map((page, idx) => (
                 <tr key={page._id}>
-                  {console.log(page)}
                   <td>{page.title}</td>
                   <td>{page.url}</td>
                   <td>

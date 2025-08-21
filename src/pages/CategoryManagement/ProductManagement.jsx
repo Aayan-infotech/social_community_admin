@@ -247,35 +247,6 @@ const ProductManagement = () => {
     setIsModalOpen(true);
   };
 
-  // const handleDelete = (product) => {
-  //   Swal.fire({
-  //     title: "Are you sure?",
-  //     text: `You want to delete "${product.product_name}"! This action cannot be undone.`,
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#d33",
-  //     cancelButtonColor: "#3085d6",
-  //     confirmButtonText: "Yes, delete it!",
-  //   }).then(async (result) => {
-  //     if (result.isConfirmed) {
-  //       try {
-  //         const response = await axios.delete(
-  //           `marketplace/delete-product/${product._id}`
-  //         );
-  //         if (response.data.success) {
-  //           toast.success("Product deleted successfully");
-  //           fetchProducts();
-  //         } else {
-  //           toast.error(response.data.message || "Failed to delete product");
-  //         }
-  //       } catch (error) {
-  //         toast.error(
-  //           error.response?.data?.message || "Failed to delete product"
-  //         );
-  //       }
-  //     }
-  //   });
-  // };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);

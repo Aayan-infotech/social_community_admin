@@ -1,7 +1,12 @@
-import React, { useState } from "react";
-import DataTable from "../../../components/admin/DataTable";
-import images from "../../../contstants/images";
-import { useDataTable } from "../../../hook/useDataTable";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import { useDebounce } from "../../../hook/useDebounce";
+import Table from "../../../components/Table";
+import Th from "../../../components/Th";
+import Modal from "../../../components/modal/Modal";
+import { CapitalizeFirstLetter } from "../../../service/helper";
 import {
   addEvent,
   dateFormatForInput,
@@ -9,19 +14,34 @@ import {
   getAllEvents,
   updateEvent,
 } from "../../../service/event/event";
-import { toast } from "react-toastify";
-import { CapitalizeFirstLetter } from "../../../service/helper";
-import axios from "axios";
 
-function Event({ type }) {
+const Event = ({ type }) => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({
+    key: "createdAt",
+    direction: "desc",
+  });
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_page: 1,
+    per_page: 10,
+    total_records: 0,
+  });
+  const [modalType, setModalType] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Manager form state
   const [managerName, setManagerName] = useState("");
   const [managerEmail, setManagerEmail] = useState("");
-  const [disabled, setDisabled] = useState(false);
   const [showAddManagerForm, setShowAddManagerForm] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [modalType, setModalType] = useState(null);
-  const [formData, setFormData] = useState({
-    _id: "",
+  const [statusFilter, setStatusFilter] = useState("");
+
+  // Form state for add/edit event
+  const [eventForm, setEventForm] = useState({
     eventName: "",
     eventLocation: "",
     eventStartDate: "",
@@ -34,101 +54,176 @@ function Event({ type }) {
     isFreeEvent: "",
     noOfSlots: "",
   });
-  const [sortField, setSortField] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState("desc");
 
-  const handleSort = (field) => {
-    if (!field) return;
-    setSortField(field);
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+
+  // Fetch events on paging/search/sort
+  useEffect(() => {
+    fetchEvents();
+  }, [pagination.current_page, debouncedSearchTerm, sortConfig, type , statusFilter]);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllEvents(
+        pagination.current_page,
+        pagination.per_page,
+        debouncedSearchTerm,
+        type,
+        sortConfig.key,
+        sortConfig.direction,
+        statusFilter
+      );
+      if (response?.success) {
+        setEvents(response.data || []);
+        setPagination({
+          current_page: response.current_page || 1,
+          total_page: response.total_pages || 1,
+          per_page: response.per_page || 10,
+          total_records: response.total_records || 0,
+        });
+      } else {
+        toast.error(response?.message || "Failed to fetch events");
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error("Failed to fetch events");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleView = (index) => {
-    setSelectedEvent(eventsData?.data[index]);
-    setFormData({
-      eventName: eventsData?.data[index]?.eventName || "",
-      eventLocation: eventsData?.data[index]?.eventLocation || "",
-      eventStartDate: eventsData?.data[index]?.eventStartDate || "",
-      eventEndDate: eventsData?.data[index]?.eventEndDate || "",
-      eventTimeStart: eventsData?.data[index]?.eventTimeStart || "",
-      eventTimeEnd: eventsData?.data[index]?.eventTimeEnd || "",
-      ticketPrice: eventsData?.data[index]?.ticketPrice || "",
-      eventImage: eventsData?.data[index]?.eventImage || null,
-      eventDescription: eventsData?.data[index]?.eventDescription || "",
-      isFreeEvent: eventsData?.data[index]?.isFreeEvent || "",
-      noOfSlots: eventsData?.data[index]?.noOfSlots || "",
-    });
-    setModalType("view");
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc")
+      direction = "desc";
+    setSortConfig({ key, direction });
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
   };
 
-  const handleEdit = (index) => {
-    setSelectedEvent(eventsData?.data[index]);
-    console.log(eventsData?.data[index]);
-    setFormData({
-      eventName: eventsData?.data[index]?.eventName,
-      eventLocation: eventsData?.data[index]?.eventLocation,
-      eventStartDate: dateFormatForInput(
-        eventsData?.data[index]?.eventStartDate
-      ),
-      eventEndDate: dateFormatForInput(eventsData?.data[index]?.eventEndDate),
-      eventTimeStart: eventsData?.data[index]?.eventTimeStart,
-      eventTimeEnd: eventsData?.data[index]?.eventTimeEnd,
-      ticketPrice: eventsData?.data[index]?.ticketPrice,
-      eventImage: eventsData?.data[index]?.eventImage,
-      eventDescription: eventsData?.data[index]?.eventDescription,
-      isFreeEvent: eventsData?.data[index]?.isFreeEvent,
-      noOfSlots: eventsData?.data[index]?.noOfSlots,
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-secondary"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    if (sortConfig.direction === "asc") {
+      return (
+        <div
+          className="d-flex flex-column align-items-center"
+          style={{ fontSize: "10px" }}
+        >
+          <i
+            className="bi bi-caret-up-fill text-white"
+            style={{ marginBottom: "-8px" }}
+          ></i>
+          <i className="bi bi-caret-down-fill text-secondary"></i>
+        </div>
+      );
+    }
+    return (
+      <div
+        className="d-flex flex-column align-items-center"
+        style={{ fontSize: "10px" }}
+      >
+        <i
+          className="bi bi-caret-up-fill text-secondary"
+          style={{ marginBottom: "-8px" }}
+        ></i>
+        <i className="bi bi-caret-down-fill text-white"></i>
+      </div>
+    );
+  };
+
+  const resetForm = () => {
+    setEventForm({
+      eventName: "",
+      eventLocation: "",
+      eventStartDate: "",
+      eventEndDate: "",
+      eventTimeStart: "",
+      eventTimeEnd: "",
+      ticketPrice: "",
+      eventImage: null,
+      eventDescription: "",
+      isFreeEvent: "",
+      noOfSlots: "",
     });
-    setModalType("edit");
+    setManagerName("");
+    setManagerEmail("");
+    setShowAddManagerForm(false);
   };
 
   const handleAdd = () => {
+    if (type === "upcoming" || type === "past") return; // Restrict adding for certain types
+    resetForm();
     setModalType("add");
-    setFormData({
-      eventName: "",
-      eventLocation: "",
-      eventStartDate: "",
-      eventEndDate: "",
-      eventTimeStart: "",
-      eventTimeEnd: "",
-      ticketPrice: "",
-      eventImage: null,
-      eventDescription: "",
-      isFreeEvent: "",
-      noOfSlots: "",
+    setSelectedEvent(null);
+    setIsModalOpen(true);
+  };
+
+  const handleView = (event) => {
+    setModalType("view");
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (event) => {
+    setModalType("edit");
+    setSelectedEvent(event);
+    setEventForm({
+      eventName: event.eventName || "",
+      eventLocation: event.eventLocation || "",
+      eventStartDate: dateFormatForInput(event.eventStartDate) || "",
+      eventEndDate: dateFormatForInput(event.eventEndDate) || "",
+      eventTimeStart: event.eventTimeStart || "",
+      eventTimeEnd: event.eventTimeEnd || "",
+      ticketPrice: event.ticketPrice || "",
+      eventImage: event.eventImage || null,
+      eventDescription: event.eventDescription || "",
+      isFreeEvent: event.isFreeEvent,
+      noOfSlots: event.noOfSlots || "",
     });
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setSelectedEvent(null);
-    setFormData({
-      _id: "",
-      eventName: "",
-      eventLocation: "",
-      eventStartDate: "",
-      eventEndDate: "",
-      eventTimeStart: "",
-      eventTimeEnd: "",
-      ticketPrice: "",
-      eventImage: null,
-      eventDescription: "",
-      isFreeEvent: "",
-      noOfSlots: "",
-    });
+    setIsModalOpen(false);
     setModalType(null);
+    setSelectedEvent(null);
+    resetForm();
   };
 
-  const handleChange = (e) => {
+  const handleFormChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "isFreeEvent") {
-      setFormData((prev) => ({
+      setEventForm((prev) => ({
         ...prev,
         isFreeEvent: value,
-        ticketPrice: value === "true" ? 0 : prev.ticketPrice,
+        ticketPrice: value === "true" ? "0" : prev.ticketPrice,
       }));
     } else {
-      setFormData((prev) => ({
+      setEventForm((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -138,100 +233,104 @@ function Event({ type }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData((prev) => ({
+      setEventForm((prev) => ({
         ...prev,
         eventImage: file,
       }));
     }
   };
 
-  const handleAddEvent = async () => {
-    setDisabled(true);
+  const handleSubmit = async () => {
     try {
-      // Call the Add Event API
-      // formData.isFreeEvent = formData.isFreeEvent === "true";
-      const response = await addEvent(formData);
-      console.log(response);
-      toast.success(response?.message || "Event added successfully");
-      queryClient.invalidateQueries(["events"]);
-      handleCloseModal();
-      setFormData({
-        _id: "",
-        eventName: "",
-        eventLocation: "",
-        eventStartDate: "",
-        eventEndDate: "",
-        eventTimeStart: "",
-        eventTimeEnd: "",
-        ticketPrice: "",
-        eventImage: null,
-        eventDescription: "",
-        isFreeEvent: "",
-        noOfSlots: "",
-      });
+      // Validation
+      if (!eventForm.eventName.trim()) {
+        toast.error("Event name is required");
+        return;
+      }
+      if (!eventForm.eventLocation.trim()) {
+        toast.error("Event location is required");
+        return;
+      }
+      if (!eventForm.eventStartDate) {
+        toast.error("Event start date is required");
+        return;
+      }
+      if (!eventForm.eventEndDate) {
+        toast.error("Event end date is required");
+        return;
+      }
+      if (!eventForm.eventTimeStart) {
+        toast.error("Event start time is required");
+        return;
+      }
+      if (!eventForm.eventTimeEnd) {
+        toast.error("Event end time is required");
+        return;
+      }
+      if (!eventForm.noOfSlots || eventForm.noOfSlots <= 0) {
+        toast.error("Number of slots must be greater than 0");
+        return;
+      }
+      if (
+        eventForm.isFreeEvent === "false" &&
+        (!eventForm.ticketPrice || eventForm.ticketPrice <= 0)
+      ) {
+        toast.error("Ticket price is required for paid events");
+        return;
+      }
+      if (!eventForm.eventDescription.trim()) {
+        toast.error("Event description is required");
+        return;
+      }
+
+      let response;
+      if (modalType === "add") {
+        response = await addEvent(eventForm);
+      } else if (modalType === "edit") {
+        response = await updateEvent(
+          selectedEvent._id,
+          eventForm
+        );
+      }
+
+      if (response?.success || response?.message) {
+        toast.success(
+          modalType === "add"
+            ? "Event added successfully"
+            : "Event updated successfully"
+        );
+        handleCloseModal();
+        fetchEvents();
+      } else {
+        toast.error(response?.message || "Operation failed");
+      }
     } catch (error) {
       toast.error(
-        error?.response?.data?.message ||
-          "Something Went Wrong in the Add Event"
+        error.response?.data?.message ||
+          `Failed to ${modalType === "add" ? "add" : "update"} event`
       );
-    } finally {
-      setDisabled(false);
-    }
-  };
-
-  const handleUpdateEvent = async () => {
-    setDisabled(true);
-    try {
-      const updatedEvent = await updateEvent(
-        userState?.userInfo?.accessToken,
-        selectedEvent?._id,
-        formData
-      );
-      toast.success(updatedEvent?.message || "Event updated successfully");
-      queryClient.invalidateQueries(["events"]);
-      handleCloseModal();
-      setFormData({
-        _id: "",
-        eventName: "",
-        eventLocation: "",
-        eventStartDate: "",
-        eventEndDate: "",
-        eventTimeStart: "",
-        eventTimeEnd: "",
-        ticketPrice: "",
-        eventImage: null,
-        eventDescription: "",
-        isFreeEvent: "",
-        noOfSlots: "",
-      });
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to update event";
-      toast.error(errorMessage);
-    } finally {
-      setDisabled(false);
     }
   };
 
   const handleAddManager = async (e) => {
     e.preventDefault();
-    if (!managerName) {
+    if (!managerName.trim()) {
       toast.error("Manager name is required");
       return;
     }
-    if (!managerEmail) {
+    if (!managerEmail.trim()) {
       toast.error("Manager email is required");
       return;
     }
-    setDisabled(true);
+
     try {
       const response = await axios.post(`virtual-events/registration`, {
         eventId: selectedEvent._id,
         name: managerName,
         email: managerEmail,
       });
+
       if (response?.data?.success) {
-        setDisabled(false);
         toast.success("Event manager added successfully");
         setShowAddManagerForm(false);
         setManagerName("");
@@ -239,7 +338,7 @@ function Event({ type }) {
         setSelectedEvent((prev) => ({
           ...prev,
           eventManager: [
-            ...prev.eventManager,
+            ...(prev.eventManager || []),
             {
               name: managerName,
               email: managerEmail,
@@ -252,778 +351,533 @@ function Event({ type }) {
         toast.error(response?.data?.message || "Failed to add event manager");
       }
     } catch (error) {
-      console.log(error);
-      setDisabled(false);
       toast.error(
         error?.response?.data?.message || "Failed to add event manager"
       );
     }
   };
 
-  const {
-    userState,
-    currentPage,
-    searchKeyword,
-    data: eventsData,
-    isLoading,
-    isFetching,
-    isLoadingDeleteData,
-    queryClient,
-    searchKeywordHandler,
-    submitSearchKeywordHandler,
-    deleteDataHandler,
-    setCurrentPage,
-  } = useDataTable({
-    dataQueryFn: () =>
-      getAllEvents(
-        userState?.userInfo?.accessToken,
-        currentPage,
-        10,
-        searchKeyword,
-        type,
-        sortField,
-        sortOrder
-      ),
-    dataQueryKey: ["events", type, sortField, sortOrder],
-    deleteDataMessage: "Event is deleted",
-    mutateDeleteFn: ({ slug, token }) => {
-      return deleteEvent({
-        slug,
-        token,
-      });
-    },
-  });
+  const renderEventForm = () => (
+    <form>
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventName" className="form-label">
+            Event Name <span className="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="eventName"
+            name="eventName"
+            value={eventForm.eventName}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventLocation" className="form-label">
+            Event Location <span className="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="eventLocation"
+            name="eventLocation"
+            value={eventForm.eventLocation}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+      </div>
 
-  return (
-    <>
-      <DataTable
-        pageTitle={type ? type + " Events" : "My Events"}
-        dataListName="Events"
-        searchInputPlaceHolder="Event's name..."
-        searchKeywordOnSubmitHandler={submitSearchKeywordHandler}
-        searchKeywordOnChangeHandler={searchKeywordHandler}
-        searchKeyword={searchKeyword}
-        tableHeaderTitleList={[
-          { label: "Event Name", field: "eventName" },
-          { label: "Event Location", field: "eventLocation" },
-          { label: "Event Start", field: "eventStartDate" },
-          { label: "Event End", field: "eventEndDate" },
-          { label: "No of Slots", field: "noOfSlots" },
-          { label: "Ticket Price", field: "ticketPrice" },
-          { label: "Event Status", field: "status" },
-          { label: "Actions", field: null },
-        ]}
-        onSort={(field) => {
-          if (!field) return;
-          setSortField(field);
-          setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-        }}
-        sortField={sortField}
-        sortOrder={sortOrder}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        data={eventsData?.data}
-        setCurrentPage={setCurrentPage}
-        currentPage={currentPage}
-        totalPageCount={eventsData?.total_pages}
-        userState={userState}
-        handleAdd={type !== "upcoming" && type !== "past" ? handleAdd : null}
-      >
-        {eventsData?.data && eventsData.data.length > 0 ? (
-          eventsData?.data.map((event, idx) => (
-            <tr key={event._id}>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0"></div>
-                  <div className="ml-3">
-                    <p className="whitespace-no-wrap text-gray-900">
-                      {event?.eventName}
-                    </p>
-                  </div>
-                </div>
-              </td>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <p className="whitespace-no-wrap text-gray-900">
-                  {event?.eventLocation}
-                </p>
-              </td>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <p className="whitespace-no-wrap text-gray-900">
-                  {dateTimeFormat(event?.eventStartDate, event?.eventTimeStart)}
-                </p>
-              </td>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <p className="whitespace-no-wrap text-gray-900">
-                  {dateTimeFormat(event?.eventEndDate, event?.eventTimeEnd)}
-                </p>
-              </td>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <p className="whitespace-no-wrap text-gray-900">
-                  {event?.noOfSlots}
-                </p>
-              </td>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <p className="whitespace-no-wrap text-gray-900">
-                  {event?.ticketPrice}
-                </p>
-              </td>
-              <td className="space-x-5 border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                {event.status === "approved" ? (
-                  <span className="badge bg-success">Approved</span>
-                ) : event.status === "rejected" ? (
-                  <span className="badge bg-danger">Rejected</span>
-                ) : (
-                  <span className="badge bg-warning">Pending</span>
-                )}
-              </td>
-              <td className="border-b border-gray-200 bg-white px-1 py-1 text-sm">
-                <i
-                  className="bi bi-eye text-primary fs-5 me-3"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleView(idx)}
-                  title="View Event"
-                ></i>
-                <i
-                  className="bi bi-pencil text-warning fs-5"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleEdit(idx)}
-                  title="Edit Event"
-                ></i>
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={6} className="text-center py-2">
-              No events found.
-            </td>
-          </tr>
-        )}
-      </DataTable>
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventStartDate" className="form-label">
+            Start Date <span className="text-danger">*</span>
+          </label>
+          <input
+            type="date"
+            className="form-control"
+            id="eventStartDate"
+            name="eventStartDate"
+            value={eventForm.eventStartDate}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventEndDate" className="form-label">
+            End Date <span className="text-danger">*</span>
+          </label>
+          <input
+            type="date"
+            className="form-control"
+            id="eventEndDate"
+            name="eventEndDate"
+            value={eventForm.eventEndDate}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+      </div>
 
-      {modalType && (
-        <div
-          className="modal show fade d-block"
-          tabIndex="-1"
-          role="dialog"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            role="document"
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventTimeStart" className="form-label">
+            Start Time <span className="text-danger">*</span>
+          </label>
+          <input
+            type="time"
+            className="form-control"
+            id="eventTimeStart"
+            name="eventTimeStart"
+            value={eventForm.eventTimeStart}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventTimeEnd" className="form-label">
+            End Time <span className="text-danger">*</span>
+          </label>
+          <input
+            type="time"
+            className="form-control"
+            id="eventTimeEnd"
+            name="eventTimeEnd"
+            value={eventForm.eventTimeEnd}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label htmlFor="isFreeEvent" className="form-label">
+            Free Event <span className="text-danger">*</span>
+          </label>
+          <select
+            className="form-control"
+            id="isFreeEvent"
+            name="isFreeEvent"
+            value={eventForm.isFreeEvent ? "true" :  "false" }
+            onChange={handleFormChange}
+            required
           >
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  {modalType === "view"
-                    ? "👁️ View Event"
-                    : modalType === "add"
-                    ? "➕ Add Event"
-                    : "✏️ Edit Event"}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleCloseModal}
-                ></button>
-              </div>
-              <div className="modal-body">
-                {modalType === "view" ? (
-                  <div className="container-fluid">
-                    {/* Ticket Header */}
-                    <div className="row mb-4">
-                      <div className="col-12">
-                        <div className="card border-0 bg-light">
-                          <div className="card-body text-center">
-                            <h4 className="card-title text-primary mb-1">
-                              {CapitalizeFirstLetter(selectedEvent?.eventName)}
-                            </h4>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+            <option value="">Select</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        <div className="col-md-6 mb-3">
+          <label htmlFor="ticketPrice" className="form-label">
+            Ticket Price ($){" "}
+            {eventForm.isFreeEvent === "false" && (
+              <span className="text-danger">*</span>
+            )}
+          </label>
+          <input
+            type="number"
+            className="form-control"
+            id="ticketPrice"
+            name="ticketPrice"
+            value={eventForm.ticketPrice}
+            onChange={handleFormChange}
+            min="0"
+            step="0.01"
+            disabled={eventForm.isFreeEvent === "true"}
+          />
+        </div>
+      </div>
 
-                    {/* Event Information */}
-                    <div className="row mb-4">
-                      <div className="col-12">
-                        <h6 className="text-uppercase text-muted mb-3">
-                          📅 Event Information
-                        </h6>
-                        <div className="card">
-                          <div className="card-body">
-                            <div className="row">
-                              {selectedEvent?.eventImage && (
-                                <div className="col-md-4 mb-3">
-                                  <img
-                                    src={selectedEvent?.eventImage}
-                                    alt="Event"
-                                    className="img-fluid rounded"
-                                    style={{
-                                      maxHeight: "150px",
-                                      objectFit: "cover",
-                                    }}
-                                  />
-                                </div>
-                              )}
-                              <div className="col-md-8">
-                                <h5 className="text-primary mb-2">
-                                  {CapitalizeFirstLetter(
-                                    selectedEvent?.eventName
-                                  )}
-                                </h5>
-                                <p className="mb-2">
-                                  <i className="bi bi-pin-map-fill text-danger me-2"></i>
-                                  <strong>Location:</strong>{" "}
-                                  {CapitalizeFirstLetter(
-                                    selectedEvent?.eventLocation
-                                  )}
-                                </p>
-                                <p className="mb-2">
-                                  <i className="bi bi-calendar-event text-success me-2"></i>
-                                  <strong>Start:</strong>{" "}
-                                  {dateTimeFormat(
-                                    selectedEvent?.eventStartDate,
-                                    selectedEvent?.eventTimeStart
-                                  )}
-                                </p>
-                                <p className="mb-0">
-                                  <i className="bi bi-calendar-check text-warning me-2"></i>
-                                  <strong>End:</strong>{" "}
-                                  {dateTimeFormat(
-                                    selectedEvent?.eventEndDate,
-                                    selectedEvent?.eventTimeEnd
-                                  )}
-                                </p>
-                                <p className="mb-0">
-                                  <i className="bi bi-calendar-check text-warning me-2"></i>
-                                  <strong>Ticket Price:</strong>{" "}
-                                  {`${selectedEvent?.ticketPrice} USD`}
-                                </p>
-                                <p className="mb-0">
-                                  <i className="bi bi-calendar-check text-warning me-2"></i>
-                                  <strong>No of Slots:</strong>{" "}
-                                  {`${selectedEvent?.noOfSlots} slots`}
-                                </p>
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label htmlFor="noOfSlots" className="form-label">
+            Number of Slots <span className="text-danger">*</span>
+          </label>
+          <input
+            type="number"
+            className="form-control"
+            id="noOfSlots"
+            name="noOfSlots"
+            value={eventForm.noOfSlots}
+            onChange={handleFormChange}
+            min="1"
+            required
+          />
+        </div>
+        <div className="col-md-6 mb-3">
+          <label htmlFor="eventImage" className="form-label">
+            Event Image
+          </label>
+          <input
+            type="file"
+            className="form-control"
+            id="eventImage"
+            name="eventImage"
+            onChange={handleFileChange}
+            accept="image/*"
+          />
+        </div>
+      </div>
 
-                                <p className="mb-0">
-                                  <i className="bi bi-calendar-check text-warning me-2"></i>
-                                  <strong>Status:</strong>{" "}
-                                  <span
-                                    className={`badge ${
-                                      selectedEvent?.status === "approved"
-                                        ? "bg-success"
-                                        : selectedEvent?.status === "rejected"
-                                        ? "bg-danger"
-                                        : "bg-warning"
-                                    }`}
-                                  >
-                                    {CapitalizeFirstLetter(
-                                      selectedEvent?.status
-                                    )}
-                                  </span>
-                                </p>
+      <div className="mb-3">
+        <label htmlFor="eventDescription" className="form-label">
+          Description <span className="text-danger">*</span>
+        </label>
+        <textarea
+          className="form-control"
+          id="eventDescription"
+          name="eventDescription"
+          rows="4"
+          value={eventForm.eventDescription}
+          onChange={handleFormChange}
+          required
+        ></textarea>
+      </div>
+    </form>
+  );
 
-                                <p className="mb-0">
-                                  <i className="bi bi-card-text text-info me-2"></i>
-                                  <strong>Description:</strong>{" "}
-                                  {CapitalizeFirstLetter(
-                                    selectedEvent?.eventDescription
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+  const renderViewModal = () => (
+    <div className="container-fluid">
+      {/* Event Header */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="card border-0 bg-light">
+            <div className="card-body text-center">
+              <h4 className="card-title text-primary mb-1">
+                {CapitalizeFirstLetter(selectedEvent?.eventName)}
+              </h4>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                      {selectedEvent?.status === "rejected" && (
-                        <div className="col-12">
-                          <div className="card mt-2">
-                            <div className="card-body">
-                              <h6 className="text-uppercase text-muted mb-0">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  x="0px"
-                                  y="0px"
-                                  width="25"
-                                  height="25"
-                                  viewBox="0 0 48 48"
-                                >
-                                  <path
-                                    fill="#f44336"
-                                    d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"
-                                  ></path>
-                                  <path
-                                    fill="#fff"
-                                    d="M29.656,15.516l2.828,2.828l-14.14,14.14l-2.828-2.828L29.656,15.516z"
-                                  ></path>
-                                  <path
-                                    fill="#fff"
-                                    d="M32.484,29.656l-2.828,2.828l-14.14-14.14l2.828-2.828L32.484,29.656z"
-                                  ></path>
-                                </svg>{" "}
-                                Rejection Reason
-                              </h6>
-                              {selectedEvent?.rejectionReason ? (
-                                <p className="mb-0">
-                                  {CapitalizeFirstLetter(
-                                    selectedEvent?.rejectionReason
-                                  )}
-                                </p>
-                              ) : (
-                                <p className="mb-0 text-muted">
-                                  No rejection reason provided.
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="row">
-                      <div className="col-12">
-                        <div className="card bg-light">
-                          <div className="card-body">
-                            {/* Heading and Add Button */}
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                              <h6 className="text-uppercase text-muted mb-0">
-                                🎟️ Event Managers
-                              </h6>
-                              {selectedEvent?.status === "approved" && (
-                                <button
-                                  className="btn btn-primary btn-sm"
-                                  onClick={() =>
-                                    setShowAddManagerForm((prev) => !prev)
-                                  }
-                                >
-                                  {showAddManagerForm
-                                    ? "Cancel"
-                                    : "Add Manager"}
-                                </button>
-                              )}
-                            </div>
-
-                            {showAddManagerForm && (
-                              <form
-                                className="row row-cols-lg-2 align-items-center mb-2"
-                                onSubmit={handleAddManager}
-                              >
-                                <div className="col-12">
-                                  <label
-                                    className="visually-hidden"
-                                    htmlFor="inlineFormInputGroupName"
-                                  >
-                                    Name
-                                  </label>
-                                  <div className="input-group">
-                                    <input
-                                      type="text"
-                                      className="form-control"
-                                      id="inlineFormInputGroupName"
-                                      placeholder="Name"
-                                      value={managerName}
-                                      onChange={(e) =>
-                                        setManagerName(e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="col-12">
-                                  <label
-                                    className="visually-hidden"
-                                    htmlFor="inlineFormInputGroupEmail"
-                                  >
-                                    Email
-                                  </label>
-                                  <div className="input-group">
-                                    <input
-                                      type="email"
-                                      className="form-control"
-                                      id="inlineFormInputGroupEmail"
-                                      placeholder="Email"
-                                      value={managerEmail}
-                                      onChange={(e) =>
-                                        setManagerEmail(e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="col-12 mt-2">
-                                  <button
-                                    disabled={disabled}
-                                    type="submit"
-                                    className="btn btn-primary btn-sm"
-                                  >
-                                    Submit
-                                  </button>
-                                </div>
-                              </form>
-                            )}
-                            <table className="table table-bordered table-striped">
-                              <thead className="table-dark">
-                                <tr>
-                                  <th>Manager Name</th>
-                                  <th>Email</th>
-                                  <th>UserName</th>
-                                  <th>Password</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {selectedEvent?.eventManager?.length > 0 ? (
-                                  selectedEvent.eventManager.map(
-                                    (manager, idx) => (
-                                      <tr key={idx}>
-                                        <td>{manager.name}</td>
-                                        <td>{manager.email}</td>
-                                        <td>{manager.username}</td>
-                                        <td>{manager.password}</td>
-                                      </tr>
-                                    )
-                                  )
-                                ) : (
-                                  <tr>
-                                    <td colSpan="4">No managers assigned</td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+      {/* Event Information */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <h6 className="text-uppercase text-muted mb-3">
+            📅 Event Information
+          </h6>
+          <div className="card">
+            <div className="card-body">
+              <div className="row">
+                {selectedEvent?.eventImage && (
+                  <div className="col-md-4 mb-3">
+                    <img
+                      src={selectedEvent?.eventImage}
+                      alt="Event"
+                      className="img-fluid rounded"
+                      style={{
+                        maxHeight: "150px",
+                        objectFit: "cover",
+                      }}
+                    />
                   </div>
-                ) : modalType === "edit" ? (
-                  <form>
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Name</label>
-                          <input
-                            type="text"
-                            name="eventName"
-                            className="form-control"
-                            value={formData?.eventName || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Location</label>
-                          <input
-                            type="text"
-                            name="eventLocation"
-                            className="form-control"
-                            value={formData?.eventLocation || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Start Date</label>
-                          <input
-                            type="date"
-                            name="eventStartDate"
-                            className="form-control"
-                            value={formData?.eventStartDate || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event End Date</label>
-                          <input
-                            type="date"
-                            name="eventEndDate"
-                            className="form-control"
-                            value={formData?.eventEndDate || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Start Time</label>
-                          <input
-                            type="time"
-                            name="eventTimeStart"
-                            className="form-control"
-                            value={formData?.eventTimeStart || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event End Time</label>
-                          <input
-                            type="time"
-                            name="eventTimeEnd"
-                            className="form-control"
-                            value={formData?.eventTimeEnd || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label htmlFor="isFreeEvent">Free Event</label>
-                          <select
-                            name="isFreeEvent"
-                            id="isFreeEvent"
-                            className="form-select"
-                            value={formData?.isFreeEvent || false}
-                            onChange={handleChange}
-                          >
-                            <option value="">Select</option>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Ticket Price</label>
-                          <input
-                            type="number"
-                            name="ticketPrice"
-                            className="form-control"
-                            value={formData?.ticketPrice ?? 0}
-                            onChange={handleChange}
-                            disabled={formData?.isFreeEvent === "true"}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">No of Slots</label>
-                          <input
-                            type="number"
-                            name="noOfSlots"
-                            className="form-control"
-                            value={formData?.noOfSlots || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Image</label>
-                          <input
-                            type="file"
-                            name="eventImage"
-                            className="form-control"
-                            onChange={handleFileChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-12">
-                        <div className="mb-3">
-                          <label htmlFor="eventDescription">
-                            Event Description
-                          </label>
-                          <textarea
-                            id="eventDescription"
-                            name="eventDescription"
-                            className="form-control"
-                            value={formData?.eventDescription || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                ) : modalType === "add" ? (
-                  <form>
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Name</label>
-                          <input
-                            type="text"
-                            name="eventName"
-                            className="form-control"
-                            value={formData?.eventName || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Location</label>
-                          <input
-                            type="text"
-                            name="eventLocation"
-                            className="form-control"
-                            value={formData?.eventLocation || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Start Date</label>
-                          <input
-                            type="date"
-                            name="eventStartDate"
-                            className="form-control"
-                            value={formData?.eventStartDate || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event End Date</label>
-                          <input
-                            type="date"
-                            name="eventEndDate"
-                            className="form-control"
-                            value={formData?.eventEndDate || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Start Time</label>
-                          <input
-                            type="time"
-                            name="eventTimeStart"
-                            className="form-control"
-                            value={formData?.eventTimeStart || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event End Time</label>
-                          <input
-                            type="time"
-                            name="eventTimeEnd"
-                            className="form-control"
-                            value={formData?.eventTimeEnd || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Free Event</label>
-                          <select
-                            name="isFreeEvent"
-                            id="isFreeEvent"
-                            className="form-select"
-                            value={formData?.isFreeEvent || ""}
-                            onChange={handleChange}
-                          >
-                            <option value="">
-                              Select
-                            </option>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Ticket Price</label>
-                          <input
-                            type="number"
-                            name="ticketPrice"
-                            className="form-control"
-                            value={formData?.ticketPrice || ""}
-                            onChange={handleChange}
-                            disabled={formData?.isFreeEvent === "true"}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">No of Slots</label>
-                          <input
-                            type="number"
-                            name="noOfSlots"
-                            className="form-control"
-                            value={formData?.noOfSlots || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Event Image</label>
-                          <input
-                            type="file"
-                            name="eventImage"
-                            className="form-control"
-                            onChange={handleFileChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-12">
-                        <div className="mb-3">
-                          <label htmlFor="eventDescription">
-                            Event Description
-                          </label>
-                          <textarea
-                            id="eventDescription"
-                            name="eventDescription"
-                            className="form-control"
-                            value={formData?.eventDescription || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                ) : null}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleCloseModal}
-                >
-                  Close
-                </button>
-                {modalType === "edit" ? (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={disabled}
-                    onClick={handleUpdateEvent}
-                  >
-                    Save Changes
-                  </button>
-                ) : (
-                  modalType === "add" && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      disabled={disabled}
-                      onClick={handleAddEvent}
-                    >
-                      Add Event
-                    </button>
-                  )
                 )}
+                <div className="col-md-8">
+                  <h5 className="text-primary mb-2">
+                    {CapitalizeFirstLetter(selectedEvent?.eventName)}
+                  </h5>
+                  <p className="mb-2">
+                    <i className="bi bi-pin-map-fill text-danger me-2"></i>
+                    <strong>Location:</strong>{" "}
+                    {CapitalizeFirstLetter(selectedEvent?.eventLocation)}
+                  </p>
+                  <p className="mb-2">
+                    <i className="bi bi-calendar-event text-success me-2"></i>
+                    <strong>Start:</strong>{" "}
+                    {dateTimeFormat(
+                      selectedEvent?.eventStartDate,
+                      selectedEvent?.eventTimeStart
+                    )}
+                  </p>
+                  <p className="mb-2">
+                    <i className="bi bi-calendar-check text-warning me-2"></i>
+                    <strong>End:</strong>{" "}
+                    {dateTimeFormat(
+                      selectedEvent?.eventEndDate,
+                      selectedEvent?.eventTimeEnd
+                    )}
+                  </p>
+                  <p className="mb-2">
+                    <i className="bi bi-currency-dollar text-info me-2"></i>
+                    <strong>Ticket Price:</strong>{" "}
+                    {selectedEvent?.isFreeEvent
+                      ? "Free"
+                      : `$${selectedEvent?.ticketPrice}`}
+                  </p>
+                  <p className="mb-2">
+                    <i className="bi bi-people text-primary me-2"></i>
+                    <strong>No of Slots:</strong> {selectedEvent?.noOfSlots}{" "}
+                    slots
+                  </p>
+                  <p className="mb-2">
+                    <i className="bi bi-check-circle text-success me-2"></i>
+                    <strong>Status:</strong>{" "}
+                    {selectedEvent?.status === "approved" ? (
+                      <span className="badge bg-success">Approved</span>
+                    ) : selectedEvent?.status === "rejected" ? (
+                      <span className="badge bg-danger">Rejected</span>
+                    ) : (
+                      <span className="badge bg-warning">Pending</span>
+                    )}
+                  </p>
+                  <p className="mb-0">
+                    <i className="bi bi-card-text text-info me-2"></i>
+                    <strong>Description:</strong>{" "}
+                    {CapitalizeFirstLetter(selectedEvent?.eventDescription)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+
+        {selectedEvent?.status === "rejected" && (
+          <div className="col-12">
+            <div className="card mt-2">
+              <div className="card-body">
+                <h6 className="text-uppercase text-muted mb-0">
+                  ❌ Rejection Reason
+                </h6>
+                {selectedEvent?.rejectionReason ? (
+                  <p className="mb-0">
+                    {CapitalizeFirstLetter(selectedEvent?.rejectionReason)}
+                  </p>
+                ) : (
+                  <p className="mb-0 text-muted">
+                    No rejection reason provided.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Event Managers Section */}
+      <div className="row">
+        <div className="col-12">
+          <div className="card bg-light">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="text-uppercase text-muted mb-0">
+                  🎟️ Event Managers
+                </h6>
+                {selectedEvent?.status === "approved" && (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setShowAddManagerForm((prev) => !prev)}
+                  >
+                    {showAddManagerForm ? "Cancel" : "Add Manager"}
+                  </button>
+                )}
+              </div>
+
+              {showAddManagerForm && (
+                <form className="row mb-3" onSubmit={handleAddManager}>
+                  <div className="col-md-6 mb-2">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Manager Name"
+                      value={managerName}
+                      onChange={(e) => setManagerName(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-2">
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Manager Email"
+                      value={managerEmail}
+                      onChange={(e) => setManagerEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-12">
+                    <button type="submit" className="btn btn-primary btn-sm">
+                      Add Manager
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              <table className="table table-bordered table-striped">
+                <thead className="table-dark">
+                  <tr>
+                    <th>Manager Name</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedEvent?.eventManager?.length > 0 ? (
+                    selectedEvent.eventManager.map((manager, idx) => (
+                      <tr key={idx}>
+                        <td>{manager.name}</td>
+                        <td>{manager.email}</td>
+                        <td>{manager.username}</td>
+                        <td>{manager.password}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="text-center">
+                        No managers assigned
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderFilters = () =>{
+    return (
+      <select className="form-select me-2" style={{ width: "150px" }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+        <option value="">Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    );
+  }
+
+  return (
+    <>
+      <Table
+        PageTitle={`📅 ${
+          type ? CapitalizeFirstLetter(type) + " Events" : "Event Management"
+        }`}
+        pagination={pagination}
+        setPagination={setPagination}
+        dataLength={events.length || 0}
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        clearSearch={clearSearch}
+        handleAdd={type !== "upcoming" && type !== "past" ? handleAdd : null}
+        filters={renderFilters()}
+      >
+        <table className="table table-bordered align-middle text-center table-striped text-nowrap">
+          <thead className="table-dark">
+            <tr>
+              <Th
+                children="Event Name"
+                sortIcon={getSortIcon("eventName")}
+                onClick={() => handleSort("eventName")}
+              />
+              <Th
+                children="Location"
+                sortIcon={getSortIcon("eventLocation")}
+                onClick={() => handleSort("eventLocation")}
+              />
+              <Th
+                children="Start Date"
+                sortIcon={getSortIcon("eventStartDate")}
+                onClick={() => handleSort("eventStartDate")}
+              />
+              <Th
+                children="End Date"
+                sortIcon={getSortIcon("eventEndDate")}
+                onClick={() => handleSort("eventEndDate")}
+              />
+              <Th
+                children="Slots"
+                sortIcon={getSortIcon("noOfSlots")}
+                onClick={() => handleSort("noOfSlots")}
+              />
+              <Th
+                children="Price"
+                sortIcon={getSortIcon("ticketPrice")}
+                onClick={() => handleSort("ticketPrice")}
+              />
+              <Th
+                children="Status"
+                sortIcon={getSortIcon("status")}
+                onClick={() => handleSort("status")}
+              />
+              <Th children="Actions" />
+            </tr>
+          </thead>
+          <tbody>
+            {events.length > 0 ? (
+              events.map((event) => (
+                <tr key={event._id}>
+                  <td>{event.eventName}</td>
+                  <td>{event.eventLocation}</td>
+                  <td>
+                    {dateTimeFormat(event.eventStartDate, event.eventTimeStart)}
+                  </td>
+                  <td>
+                    {dateTimeFormat(event.eventEndDate, event.eventTimeEnd)}
+                  </td>
+                  <td>{event.noOfSlots}</td>
+                  <td>
+                    {event.isFreeEvent ? "Free" : `$${event.ticketPrice}`}
+                  </td>
+                  <td>
+                    {event.status === "approved" ? (
+                      <span className="badge bg-success">Approved</span>
+                    ) : event.status === "rejected" ? (
+                      <span className="badge bg-danger">Rejected</span>
+                    ) : (
+                      <span className="badge bg-warning">Pending</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="d-flex justify-content-center gap-2">
+                      <i
+                        className="bi bi-eye text-primary fs-5"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleView(event)}
+                        title="View Details"
+                      ></i>
+                      <i
+                        className="bi bi-pencil text-warning fs-5"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleEdit(event)}
+                        title="Edit Event"
+                      ></i>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8">
+                  {loading ? (
+                    <div
+                      className="spinner-border text-primary"
+                      role="status"
+                    ></div>
+                  ) : (
+                    "No events found"
+                  )}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Table>
+
+      <Modal
+        isOpen={isModalOpen}
+        type={modalType}
+        title="Event"
+        onClose={handleCloseModal}
+        onSubmit={modalType !== "view" ? handleSubmit : undefined}
+      >
+        {modalType === "view" ? renderViewModal() : renderEventForm()}
+      </Modal>
     </>
   );
-}
+};
 
 export default Event;

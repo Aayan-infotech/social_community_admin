@@ -65,7 +65,6 @@ const ProductOrder = ({ type = "" }) => {
           total_records: res?.data?.data?.total_records,
         });
       } else {
-        console.log(res.data);
         toast.error(res.data.message || "Failed to fetch orders");
       }
     } catch (err) {

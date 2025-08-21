@@ -229,19 +229,25 @@ const OrderDetails = () => {
                       Payment Gateway Fee
                     </span>
                     <span className="w-50 h-100 text-primary d-block">
-                      ${item?.amount * 0.029 + 0.3}
+                      ${(Number(item?.amount) * 0.029 + 0.3).toFixed(2)}
                     </span>
                   </li>
                   <li className="list-group-item p-2 text-left d-flex">
                     <span className="w-50 d-block pr-2">Platform Fee</span>
                     <span className="w-50 h-100 text-primary d-block">
-                      ${item?.amount * 0.1 - (item?.amount * 0.029 + 0.3)}
+                      $
+                      {Number(
+                        Number((Number(item?.amount) * 0.1).toFixed(2)) -
+                          Number(item?.amount * 0.029)
+                      ).toFixed(2)}
                     </span>
                   </li>
                   <li className="list-group-item p-2 text-left d-flex">
                     <span className="w-50 d-block pr-2">Net Payable</span>
                     <span className="w-50 h-100 text-primary d-block">
-                      ${item?.amount - item?.amount * 0.1}
+                      $
+                      {Number(item?.amount) -
+                        (Number(item?.amount) * 0.1 + 0.3).toFixed(2)}
                     </span>
                   </li>
                 </ul>
@@ -281,7 +287,7 @@ const OrderDetails = () => {
               Total Charges & Fees
             </td>
             <td colSpan={3}>
-              ${order.items.reduce((acc, item) => acc + item.amount * 0.1, 0)}
+              ${order.items.reduce((acc, item) => acc + (Number(item.amount) * 0.1 + 0.3), 0)}
             </td>
           </tr>
           <tr>
@@ -291,7 +297,7 @@ const OrderDetails = () => {
             <td colSpan={3}>
               $
               {order.items.reduce(
-                (acc, item) => acc + item.amount - item.amount * 0.1,
+                (acc, item) => acc + Number(item.amount) - item.amount * 0.1,
                 0
               )}
             </td>

@@ -284,7 +284,6 @@ const Events = () => {
         toast.error(response?.data?.message || "Failed to add event manager");
       }
     } catch (error) {
-      // console.log(error);
       setDisabled(false);
       toast.error(
         error?.response?.data?.message || "Failed to add event manager"
