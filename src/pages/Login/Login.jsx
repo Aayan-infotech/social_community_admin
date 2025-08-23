@@ -34,6 +34,7 @@ const LoginPage = () => {
       const response = await axios.post("auth/login", form, {
         headers: {
           "Content-Type": "application/json",
+          "appVersion":"45"
         },
       });
 
