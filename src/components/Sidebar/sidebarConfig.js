@@ -140,6 +140,24 @@ export const sidebarConfig = {
                 //     url: '/admin/contact',
                 // }
             ]
+        },
+         {
+            id: 'Interest',
+            label: 'Interest',
+            icon: 'bi-file-earmark-text',
+            type: 'dropdown',
+            children: [
+                {
+                    id: 'interestCategories',
+                    label: 'All Categories',
+                    url: '/admin/interest-categories',
+                },
+                {
+                    id: 'allInterests',
+                    label: 'All Interests',
+                    url: '/admin/interests',
+                },
+            ]
         }
     ],
 

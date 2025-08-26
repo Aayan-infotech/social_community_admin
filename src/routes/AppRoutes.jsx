@@ -29,6 +29,8 @@ import ProductManagement from "../pages/CategoryManagement/ProductManagement";
 import OrderList from "../pages/CategoryManagement/ProductOrder";
 import ProductOrder from "../pages/CategoryManagement/ProductOrder";
 import OrderDetails from "../pages/CategoryManagement/OrderDetails";
+import InterestCategories from "../pages/Interests/InterestCategories";
+import Interests from "../pages/Interests/Interests";
 
 export default function AppRoutes() {
   const userState = useSelector((state) => state.user);
@@ -70,6 +72,10 @@ export default function AppRoutes() {
           <Route path="reported-posts" element={<ReportedPost />} />
           <Route path="all-event-organizers" element={<EventOrganizer />} />
           <Route path="health-wellness" element={<HealthWellness />} />
+
+          {/* Interest Management */}
+          <Route path="interest-categories" element={<InterestCategories />} />
+          <Route path="interests" element={<Interests />} />
         </Route>
       )}
 
