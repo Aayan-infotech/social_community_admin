@@ -52,7 +52,7 @@ const OrderDetails = () => {
 
   useEffect(() => {
     if (modalType === "updateStatus" && order) {
-      const item = order.items[0]; // You can adapt for multi-item support
+      const item = order.items[0]; 
       setFormData({
         status: item.status,
         cancellationRemark: item.cancellationRemark || "",
@@ -384,7 +384,7 @@ const OrderDetails = () => {
                         })
                       }
                     >
-                      {formData.status === "placed" && (
+                      {order?.status === "placed" && (
                         <>
                           <option value="placed">Placed</option>
                           <option value="shipped">Shipped</option>
@@ -392,20 +392,20 @@ const OrderDetails = () => {
                         </>
                       )}
 
-                      {formData.status === "shipped" && (
+                      {order?.status === "shipped" && (
                         <>
                           <option value="shipped">Shipped</option>
                           <option value="delivered">Delivered</option>
                         </>
                       )}
 
-                      {formData.status === "delivered" && (
+                      {order?.status === "delivered" && (
                         <option value="delivered" disabled>
                           Delivered
                         </option>
                       )}
 
-                      {formData.status === "cancelled" && (
+                      {order?.status === "cancelled" && (
                         <option value="cancelled" disabled>
                           Cancelled
                         </option>
@@ -417,7 +417,7 @@ const OrderDetails = () => {
                     style={{
                       display:
                         formData.status === "cancelled" ||
-                        order?.items?.[0]?.status === "cancelled"
+                        order?.status === "cancelled"
                           ? "block"
                           : "none",
                     }}
@@ -427,6 +427,7 @@ const OrderDetails = () => {
                       className="form-control"
                       id="cancellationRemark"
                       name="cancellationRemark"
+                      value={order?.cancellationRemark || formData.cancellationRemark}
                       rows="3"
                       placeholder="Add any remarks here..."
                       onChange={(e) =>
@@ -436,9 +437,10 @@ const OrderDetails = () => {
                         })
                       }
                     >
-                      {order?.items?.[0]?.cancellationRemark}
                     </textarea>
                   </div>
+
+
                   <div
                     className="mb-3"
                     style={{
@@ -457,7 +459,7 @@ const OrderDetails = () => {
                       name="trackingId"
                       placeholder="Enter tracking number"
                       value={
-                        order?.items?.[0]?.trackingId || formData.trackingId
+                        order?.trackingId || formData.trackingId
                       }
                       onChange={(e) =>
                         setFormData({ ...formData, trackingId: e.target.value })
@@ -473,7 +475,7 @@ const OrderDetails = () => {
                         name="carrierPartner"
                         placeholder="Enter carrier name"
                         value={
-                          order?.items?.[0]?.carrierPartner ||
+                          order?.carrierPartner ||
                           formData.carrierPartner
                         }
                         onChange={(e) =>
