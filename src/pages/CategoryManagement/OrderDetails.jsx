@@ -238,7 +238,7 @@ const OrderDetails = () => {
                       $
                       {Number(
                         Number((Number(item?.amount) * 0.1).toFixed(2)) -
-                          Number(item?.amount * 0.029)
+                          Number(item?.amount * 0.029 + 0.3)
                       ).toFixed(2)}
                     </span>
                   </li>
@@ -247,7 +247,7 @@ const OrderDetails = () => {
                     <span className="w-50 h-100 text-primary d-block">
                       $
                       {Number(item?.amount) -
-                        (Number(item?.amount) * 0.1 + 0.3).toFixed(2)}
+                        (Number(item?.amount) * 0.1).toFixed(2)}
                     </span>
                   </li>
                 </ul>
@@ -287,7 +287,7 @@ const OrderDetails = () => {
               Total Charges & Fees
             </td>
             <td colSpan={3}>
-              ${order.items.reduce((acc, item) => acc + (Number(item.amount) * 0.1 + 0.3), 0)}
+              ${order.items.reduce((acc, item) => acc + (Number(item.amount) * 0.1), 0)}
             </td>
           </tr>
           <tr>
